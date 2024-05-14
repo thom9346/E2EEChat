@@ -1,6 +1,6 @@
 <mat-list>
-    <mat-list-item *ngFor="let message of messages">
-      {{ message.content }}
-    </mat-list-item>
+  <mat-list-item *ngFor="let message of messages">
+    {{ message.content }}
+  </mat-list-item>
 </mat-list>
-<app-chat-input></app-chat-input>
+<app-chat-input (messageSent)="onMessageSent($event)"></app-chat-input>

@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ChatService } from '../services/chat.service';
+import { Message } from '../models/Message';
 
 @Component({
   selector: 'app-chat-window',
@@ -8,7 +9,7 @@ import { ChatService } from '../services/chat.service';
 })
 export class ChatWindowComponent implements OnInit {
 
-  messages: any[] = [];
+  messages: Message[] = [];
 
   constructor(private chatService: ChatService) {}
 
@@ -21,5 +22,9 @@ export class ChatWindowComponent implements OnInit {
       next: (data) => this.messages = data,
       error: (error) => console.error('Failed to get messages:', error)
     });
+  }
+
+  onMessageSent(message: Message) {
+    this.messages.push(message);
   }
 }

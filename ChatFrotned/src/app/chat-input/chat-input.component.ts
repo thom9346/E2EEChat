@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Output, EventEmitter } from '@angular/core';
 import { ChatService } from '../services/chat.service';
 import { Message } from '../models/Message';
 import { AuthService } from '../services/auth.service';
@@ -11,6 +11,7 @@ import { AuthService } from '../services/auth.service';
 export class ChatInputComponent {
 
   newMessage: string = '';
+  @Output() messageSent = new EventEmitter<Message>();
 
   constructor(private chatService: ChatService, private authService: AuthService) {}
 
@@ -26,7 +27,10 @@ export class ChatInputComponent {
       };
 
       this.chatService.sendMessage(messageToSend).subscribe({
-        next: () => this.newMessage = '',
+        next: (message) => {
+          this.messageSent.emit(message);
+          this.newMessage = '';
+        },
         error: (error) => console.error('Failed to send message:', error)
       });
     }

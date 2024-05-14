@@ -71,5 +71,26 @@ namespace ChatApi.WebApi.Controllers
             return CreatedAtRoute("GetMessages", new { id = messageDtoResult.MessageId }, messageDtoResult);
 
         }
+
+        [HttpGet("between/{userId1}/{userId2}")]
+        public IActionResult GetMessagesBetweenUsers(Guid userId1, Guid userId2)
+        {
+            var user1Exists = _userRepository.Get(userId1) != null;
+            var user2Exists = _userRepository.Get(userId2) != null;
+
+            if (!user1Exists || !user2Exists)
+            {
+                return BadRequest("One or both user IDs are invalid.");
+            }
+
+            var messages = _messageRepository.GetAll()
+                .Where(m => (m.SenderId == userId1 && m.RecipientId == userId2) ||
+                            (m.SenderId == userId2 && m.RecipientId == userId1))
+                .OrderBy(m => m.Timestamp)
+                .ToList();
+
+            var messageDtos = _mapper.Map<IEnumerable<MessageDto>>(messages);
+            return Ok(messageDtos);
+        }
     }
 }

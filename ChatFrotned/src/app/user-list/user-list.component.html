@@ -1,0 +1,11 @@
+<div class="user-list-container">
+    <h3>Users</h3>
+    <mat-list>
+      <ng-container *ngFor="let user of users">
+        <mat-list-item *ngIf="user.userId !== currentUser.nameid" (click)="selectUser(user)">
+          {{ user.username }}
+        </mat-list-item>
+      </ng-container>
+    </mat-list>
+  </div>
+  

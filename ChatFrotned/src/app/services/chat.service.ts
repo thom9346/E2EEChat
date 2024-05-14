@@ -8,13 +8,16 @@ import { Message } from '../models/Message';
   providedIn: 'root'
 })
 export class ChatService {
-  
+
   private apiUrl = 'https://localhost:5000/api'; 
 
   constructor(private http: HttpClient) {}
 
   getMessages(): Observable<Message[]> {
     return this.http.get<Message[]>(`${this.apiUrl}/Messages`);
+  }
+  getMessagesBetweenUsers(userId1: string, userId2: string): Observable<Message[]> {
+    return this.http.get<Message[]>(`${this.apiUrl}/Messages/between/${userId1}/${userId2}`);
   }
 
   sendMessage(message: Message): Observable<Message> {

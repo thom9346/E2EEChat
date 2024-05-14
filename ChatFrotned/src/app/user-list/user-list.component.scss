@@ -1,0 +1,18 @@
+.user-list-container {
+    background-color: #f5f5f5;
+    padding: 10px;
+  }
+  
+  .user-list-container h3 {
+    margin-top: 0;
+  }
+  
+  mat-list-item {
+    cursor: pointer;
+    padding: 10px;
+    border-radius: 5px;
+  }
+  
+  mat-list-item:hover {
+    background-color: #e0e0e0;
+  }

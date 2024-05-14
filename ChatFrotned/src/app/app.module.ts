@@ -15,6 +15,7 @@ import { LoginComponent } from './login/login.component';
 import {MatCardModule} from '@angular/material/card';
 import { AuthGuard } from './guards/auth.guard';
 import { RegisterComponent } from './register/register.component';
+import { UserListComponent } from './user-list/user-list.component';
 
 
 @NgModule({
@@ -23,7 +24,8 @@ import { RegisterComponent } from './register/register.component';
     ChatWindowComponent,
     ChatInputComponent,
     LoginComponent,
-    RegisterComponent
+    RegisterComponent,
+    UserListComponent
   ],
   imports: [
     BrowserModule,

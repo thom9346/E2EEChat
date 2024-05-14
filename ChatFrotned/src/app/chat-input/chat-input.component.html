@@ -1,6 +1,6 @@
 <div class="chat-input-container">
   <mat-form-field class="example-full-width">
-    <input matInput [(ngModel)]="newMessage" (keyup.enter)="sendMessage()" placeholder="Type a message...">
+    <input matInput [(ngModel)]="newMessage" (keyup.enter)="sendMessage()" placeholder="Type a message..." [disabled]="!recipient">
   </mat-form-field>
-  <button mat-raised-button color="primary" (click)="sendMessage()">Send</button>
+  <button mat-raised-button color="primary" (click)="sendMessage()" [disabled]="!recipient">Send</button>
 </div>

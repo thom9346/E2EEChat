@@ -1,14 +1,20 @@
-<div class="chat-window-container">
-  <div class="header">
-    <h1>Chat</h1>
-    <button mat-button color="warn" (click)="logout()">Logout</button>
+<div class="chat-layout">
+  <div class="user-list-container">
+    <app-user-list (userSelected)="onUserSelected($event)"></app-user-list>
   </div>
-  <div class="messages-container">
-    <mat-list>
-      <mat-list-item *ngFor="let message of messages">
-        {{ message.content }}
-      </mat-list-item>
-    </mat-list>
+  <div class="chat-container" *ngIf="selectedRecipient">
+    <div class="chat-header">
+      <h2>Chat with {{ selectedRecipient.username }}</h2>
+    </div>
+    <div class="messages-container">
+      <mat-list>
+        <div *ngFor="let message of messages" class="message-item" [ngClass]="{'my-message': message.senderId === currentUser.nameid, 'their-message': message.senderId !== currentUser.nameid}">
+          <div class="message-bubble">
+            {{ message.content }}
+          </div>
+        </div>
+      </mat-list>
+    </div>
+    <app-chat-input [recipient]="selectedRecipient" (messageSent)="onMessageSent($event)"></app-chat-input>
   </div>
-  <app-chat-input (messageSent)="onMessageSent($event)"></app-chat-input>
 </div>

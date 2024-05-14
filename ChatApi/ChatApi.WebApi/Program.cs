@@ -4,7 +4,11 @@ using ChatApi.Core.Interfaces;
 using ChatApi.Infrastructure;
 using ChatApi.Infrastructure.Repositories;
 using ChatApi.WebApi.SignalR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using System.Text;
+using Microsoft.IdentityModel.Tokens;
+
 
 namespace ChatApi
 {
@@ -29,6 +33,30 @@ namespace ChatApi
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            var key = Encoding.ASCII.GetBytes("YourSuperSecretKeyHere");
+
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.RequireHttpsMetadata = false;
+                options.SaveToken = true;
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = "yourdomain.com",
+                    ValidAudience = "yourdomain.com",
+                    IssuerSigningKey = new SymmetricSecurityKey(key)
+                };
+            });
+
+
             builder.Services.AddAutoMapper(typeof(MappingProfile));
 
             builder.Services.AddDbContext<ChatApiContext>(options =>
@@ -50,6 +78,7 @@ namespace ChatApi
 
             app.UseHttpsRedirection();
 
+            app.UseAuthentication();
             app.UseAuthorization();
             app.UseCors("AllowSpecificOrigin");
 

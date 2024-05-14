@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { ChatService } from '../services/chat.service';
 import { Message } from '../models/Message';
+import { AuthService } from '../services/auth.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-chat-window',
@@ -11,7 +13,7 @@ export class ChatWindowComponent implements OnInit {
 
   messages: Message[] = [];
 
-  constructor(private chatService: ChatService) {}
+  constructor(private chatService: ChatService, private authService: AuthService, private router: Router) {}
 
   ngOnInit() {
     this.loadMessages();
@@ -26,5 +28,9 @@ export class ChatWindowComponent implements OnInit {
 
   onMessageSent(message: Message) {
     this.messages.push(message);
+  }
+  logout() {
+    this.authService.logout();
+    this.router.navigate(['/login']);
   }
 }

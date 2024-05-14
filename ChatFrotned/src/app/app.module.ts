@@ -12,13 +12,18 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatListModule } from '@angular/material/list';
 import { LoginComponent } from './login/login.component';
+import {MatCardModule} from '@angular/material/card';
+import { AuthGuard } from './guards/auth.guard';
+import { RegisterComponent } from './register/register.component';
+
 
 @NgModule({
   declarations: [
     AppComponent,
     ChatWindowComponent,
     ChatInputComponent,
-    LoginComponent
+    LoginComponent,
+    RegisterComponent
   ],
   imports: [
     BrowserModule,
@@ -28,9 +33,10 @@ import { LoginComponent } from './login/login.component';
     BrowserAnimationsModule,
     MatInputModule,
     MatButtonModule,
-    MatListModule
+    MatListModule,
+    MatCardModule
   ],
-  providers: [],
+  providers: [AuthGuard],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

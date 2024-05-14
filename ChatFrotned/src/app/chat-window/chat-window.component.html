@@ -1,6 +1,14 @@
-<mat-list>
-  <mat-list-item *ngFor="let message of messages">
-    {{ message.content }}
-  </mat-list-item>
-</mat-list>
-<app-chat-input (messageSent)="onMessageSent($event)"></app-chat-input>
+<div class="chat-window-container">
+  <div class="header">
+    <h1>Chat</h1>
+    <button mat-button color="warn" (click)="logout()">Logout</button>
+  </div>
+  <div class="messages-container">
+    <mat-list>
+      <mat-list-item *ngFor="let message of messages">
+        {{ message.content }}
+      </mat-list-item>
+    </mat-list>
+  </div>
+  <app-chat-input (messageSent)="onMessageSent($event)"></app-chat-input>
+</div>

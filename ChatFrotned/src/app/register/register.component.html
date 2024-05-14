@@ -1,0 +1,30 @@
+<div class="register-container">
+    <mat-card>
+      <mat-card-title>Register</mat-card-title>
+      <mat-card-content>
+        <form (ngSubmit)="onSubmit()">
+          <mat-form-field>
+            <mat-label>Username</mat-label>
+            <input matInput [(ngModel)]="username" name="username" required>
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Email</mat-label>
+            <input matInput [(ngModel)]="email" name="email" type="email" required>
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Password</mat-label>
+            <input matInput [(ngModel)]="password" name="password" type="password" required>
+          </mat-form-field>
+          <mat-form-field>
+            <mat-label>Confirm Password</mat-label>
+            <input matInput [(ngModel)]="confirmPassword" name="confirmPassword" type="password" required>
+          </mat-form-field>
+          <button mat-raised-button color="primary" type="submit">Register</button>
+        </form>
+        <p class="link-text">
+          Already have an account? <a routerLink="/login">Login</a>
+        </p>
+      </mat-card-content>
+    </mat-card>
+</div>
+  

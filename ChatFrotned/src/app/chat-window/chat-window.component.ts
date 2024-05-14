@@ -29,6 +29,7 @@ export class ChatWindowComponent implements OnInit {
   onMessageSent(message: Message) {
     this.messages.push(message);
   }
+
   logout() {
     this.authService.logout();
     this.router.navigate(['/login']);

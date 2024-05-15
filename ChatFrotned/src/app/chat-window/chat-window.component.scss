@@ -30,11 +30,14 @@
   background-color: #fff;
   border-top: 1px solid #ddd;
   border-bottom: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
 }
 
 mat-list {
   display: flex;
   flex-direction: column;
+  width: 100%;
 }
 
 .message-item {
@@ -74,4 +77,11 @@ mat-list {
   padding: 10px;
   background-color: #fff;
   border-top: 1px solid #ddd;
+  display: flex;
+  align-items: center;
+}
+
+.app-chat-input mat-form-field {
+  flex: 1;
+  margin-right: 10px;
 }

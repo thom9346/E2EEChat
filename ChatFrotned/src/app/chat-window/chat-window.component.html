@@ -6,7 +6,7 @@
     <div class="chat-header">
       <h2>Chat with {{ selectedRecipient.username }}</h2>
     </div>
-    <div class="messages-container">
+    <div #messagesContainer class="messages-container">
       <mat-list>
         <div *ngFor="let message of messages" class="message-item" [ngClass]="{'my-message': message.senderId === currentUser.nameid, 'their-message': message.senderId !== currentUser.nameid}">
           <div class="message-bubble">

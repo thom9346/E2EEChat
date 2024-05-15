@@ -3,6 +3,7 @@ import { ChatService } from '../services/chat.service';
 import { Message } from '../models/Message';
 import { AuthService } from '../services/auth.service';
 import { User } from '../models/User';
+import { SignalRService } from '../services/signal-r.service';
 @Component({
   selector: 'app-chat-input',
   templateUrl: './chat-input.component.html',
@@ -14,7 +15,7 @@ export class ChatInputComponent {
   newMessage: string = '';
   @Output() messageSent = new EventEmitter<Message>();
 
-  constructor(private chatService: ChatService, private authService: AuthService) {}
+  constructor(private authService: AuthService, private signalRService: SignalRService) {}
 
   sendMessage() {
     if (this.newMessage.trim() && this.recipient) {
@@ -30,13 +31,10 @@ export class ChatInputComponent {
       console.log("Here is recipient:")
       console.log(this.recipient)
 
-      this.chatService.sendMessage(messageToSend).subscribe({
-        next: (message) => {
-          this.messageSent.emit(message);
-          this.newMessage = '';
-        },
-        error: (error) => console.error('Failed to send message:', error)
-      });
+      this.signalRService.sendMessage(messageToSend).then(() => {
+        this.messageSent.emit(messageToSend);
+        this.newMessage = '';
+      }).catch(error => console.error('Failed to send message:', error));
     }
   }
 }

@@ -1,18 +1,14 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using ChatApi.Core.DTOs;
+using Microsoft.AspNetCore.SignalR;
 using System.Threading.Tasks;
 
 namespace ChatApi.WebApi.SignalR
 {
     public class ChatHub : Hub
     {
-        public async Task SendMessage(string user, byte[] encryptedMessage)
+        public async Task SendMessage(MessageDto message)
         {
-            await Clients.All.SendAsync("ReceiveMessage", user, encryptedMessage);
-        }
-
-        public async Task SendPublicKey(string publicKey)
-        {
-            await Clients.Others.SendAsync("ReceivePublicKey", publicKey);
+            await Clients.All.SendAsync("ReceiveMessage", message);
         }
     }
 }

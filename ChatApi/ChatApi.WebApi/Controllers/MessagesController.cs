@@ -3,8 +3,10 @@ using ChatApi.Core.DTOs;
 using ChatApi.Core.Entities;
 using ChatApi.Core.Interfaces;
 using ChatApi.Infrastructure.Repositories;
+using ChatApi.WebApi.SignalR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 
 namespace ChatApi.WebApi.Controllers
 {
@@ -15,8 +17,14 @@ namespace ChatApi.WebApi.Controllers
         private readonly IRepository<Message> _messageRepository;
         private readonly IRepository<User> _userRepository;
         private readonly IMapper _mapper;
+        private readonly IHubContext<ChatHub> _hubContext;
 
-        public MessagesController(IRepository<Message> messageRepos, IRepository<User> userRepos, IMapper mapper)
+        public MessagesController(
+            IRepository<Message> messageRepos,
+            IRepository<User> userRepos,
+            IMapper mapper,
+            IHubContext<ChatHub> hubContext
+            )
         {
             _messageRepository = messageRepos ??
                 throw new ArgumentNullException(nameof(messageRepos));
@@ -26,6 +34,9 @@ namespace ChatApi.WebApi.Controllers
 
             _mapper = mapper ?? 
                 throw new ArgumentNullException(nameof(mapper));
+
+            _hubContext = hubContext ??
+                throw new ArgumentNullException(nameof(hubContext));
         }
         [HttpGet(Name = "GetMessages")]
         public IActionResult Get()
@@ -35,7 +46,7 @@ namespace ChatApi.WebApi.Controllers
             return Ok(messageDtos);
         }
         [HttpPost]
-        public IActionResult Post([FromBody] MessageDto messageDto)
+        public async Task<IActionResult> Post([FromBody] MessageDto messageDto)
         {
             if (messageDto == null)
             {
@@ -67,6 +78,8 @@ namespace ChatApi.WebApi.Controllers
             }
 
             var messageDtoResult = _mapper.Map<MessageDto>(message);
+
+            await _hubContext.Clients.All.SendAsync("ReceiveMessage", messageDtoResult);
 
             return CreatedAtRoute("GetMessages", new { id = messageDtoResult.MessageId }, messageDtoResult);
 

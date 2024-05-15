@@ -4,6 +4,7 @@ import { Message } from '../models/Message';
 import { AuthService } from '../services/auth.service';
 import { Router } from '@angular/router';
 import { User } from '../models/User';
+import { SignalRService } from '../services/signal-r.service';
 
 @Component({
   selector: 'app-chat-window',
@@ -16,28 +17,25 @@ export class ChatWindowComponent implements OnInit {
   selectedRecipient: User | null = null;
   currentUser: any;
 
-  constructor(private chatService: ChatService, private authService: AuthService, private router: Router) {
+  constructor(private chatService: ChatService, private authService: AuthService, private router: Router, private signalRService: SignalRService) {
     this.currentUser = this.authService.getCurrentUser();
   }
 
   ngOnInit() {
-    //this.loadMessages();
+    this.signalRService.messageReceived$.subscribe((message: Message) => {
+      if (this.selectedRecipient && (message.senderId === this.selectedRecipient.userId || message.recipientId === this.selectedRecipient.userId)) {
+        this.messages.push(message);
+      }
+    });
   }
 
   loadMessages() {
     if (this.selectedRecipient) {
-      console.log(this.selectedRecipient)
-      console.log("user current")
-      console.log(this.currentUser)
       this.chatService.getMessagesBetweenUsers(this.currentUser.nameid, this.selectedRecipient.userId).subscribe({
         next: (data) => this.messages = data,
         error: (error) => console.error('Failed to get messages:', error)
       });
     }
-  }
-
-  onMessageSent(message: Message) {
-    this.messages.push(message);
   }
 
   onUserSelected(user: User) {

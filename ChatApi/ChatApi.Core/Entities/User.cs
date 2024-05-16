@@ -13,5 +13,6 @@ namespace ChatApi.Core.Entities
         public string PasswordHash { get; set; }
         public string Username { get; set; }
         public List<Message> Messages { get; set; }
+        public ICollection<Connection> Connections { get; set; }
     }
 }

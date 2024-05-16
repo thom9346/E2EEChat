@@ -17,16 +17,20 @@ namespace ChatApi.WebApi.Controllers
 
         public UsersController(IRepository<User> userRepos, IMapper mapper)
         {
-            _userRepository = userRepos ??
-                throw new ArgumentNullException(nameof(userRepos));
-
-            _mapper = mapper ??
-                throw new ArgumentNullException(nameof(mapper));
+            _userRepository = userRepos ?? throw new ArgumentNullException(nameof(userRepos));
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
+
         [HttpGet(Name = "GetUsers")]
-        public IEnumerable<User> Get()
+        public IEnumerable<UserDto> Get()
         {
-            return _userRepository.GetAll();
+            var users = _userRepository.GetAll();
+            var userDtos = _mapper.Map<IEnumerable<UserDto>>(users);
+            foreach (var userDto in userDtos)
+            {
+                userDto.ConnectionIds = users.FirstOrDefault(u => u.UserId == userDto.UserId)?.Connections.Select(c => c.ConnectionString).ToList();
+            }
+            return userDtos;
         }
 
         [HttpPost]
@@ -47,7 +51,6 @@ namespace ChatApi.WebApi.Controllers
             userDtoResult.Password = null;
 
             return CreatedAtRoute("GetUsers", new { id = userDtoResult.UserId }, userDtoResult);
-
         }
     }
 }

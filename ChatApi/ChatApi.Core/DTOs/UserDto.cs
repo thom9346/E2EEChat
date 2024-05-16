@@ -12,5 +12,6 @@ namespace ChatApi.Core.DTOs
         public string Username { get; set; }
         public string Password { get; set; } //plaintext
         public string Email { get; set; }
+        public List<string> ConnectionIds { get; set; }
     }
 }

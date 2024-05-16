@@ -7,7 +7,7 @@ namespace ChatApi.Core.Interfaces
         T Get(Guid id);
         void Add(T entity);
         void Edit(T entity);
-        void Remove(int id);
+        void Remove(Guid id);
         bool Save();
     }
 }

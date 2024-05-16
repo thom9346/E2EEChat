@@ -37,7 +37,7 @@ namespace ChatApi.Infrastructure.Repositories
             return _db.Users.ToList();
         }
 
-        public void Remove(int id)
+        public void Remove(Guid id)
         {
             throw new NotImplementedException();
         }

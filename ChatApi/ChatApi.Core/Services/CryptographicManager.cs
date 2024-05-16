@@ -55,6 +55,7 @@ namespace ChatApi.Core.Services
             }
         }
 
+
         public byte[] Encrypt(byte[] dataToEncrypt, byte[] key)
         {
             using (var aesCbc = Aes.Create())

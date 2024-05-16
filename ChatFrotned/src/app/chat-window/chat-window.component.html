@@ -3,13 +3,9 @@
     <app-user-list (userSelected)="onUserSelected($event)"></app-user-list>
   </div>
   <div class="chat-container" *ngIf="selectedRecipient">
-    <div class="chat-header" style="position: relative; text-align: center;">
-      <div style="display: inline-block;">
-        <h2>Chat with {{ selectedRecipient.username }}</h2>
-      </div>
-      <button mat-button color="warn" (click)="logout()" style="position: absolute; right: 0; top: 50%; transform: translateY(-50%);">
-        Logout
-      </button>
+    <div class="chat-header" style="display: flex; justify-content: space-between; align-items: center;">
+      <h2>Chat with {{ selectedRecipient.username }}</h2>
+      <button mat-button color="warn" (click)="logout()">Logout</button>
     </div>
     <div #messagesContainer class="messages-container">
       <mat-list>

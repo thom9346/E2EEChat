@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
+using ChatApi.Core.Services;
 
 
 namespace ChatApi
@@ -64,6 +65,7 @@ namespace ChatApi
 
             builder.Services.AddScoped<IRepository<Message>, MessageRepository>();
             builder.Services.AddScoped<IRepository<User>, UserRepository>();
+            builder.Services.AddScoped<ICryptographicManager, CryptographicManager>();
 
             builder.Services.AddSignalR();
 

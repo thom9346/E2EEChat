@@ -2,11 +2,13 @@
 using ChatApi.Core.DTOs;
 using ChatApi.Core.Entities;
 using ChatApi.Core.Interfaces;
+using ChatApi.Core.Services;
 using ChatApi.Infrastructure.Repositories;
 using ChatApi.WebApi.SignalR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
+using System.Text;
 
 namespace ChatApi.WebApi.Controllers
 {
@@ -18,12 +20,14 @@ namespace ChatApi.WebApi.Controllers
         private readonly IRepository<User> _userRepository;
         private readonly IMapper _mapper;
         private readonly IHubContext<ChatHub> _hubContext;
+        private readonly ICryptographicManager _cryptographicManager;
 
         public MessagesController(
             IRepository<Message> messageRepos,
             IRepository<User> userRepos,
             IMapper mapper,
-            IHubContext<ChatHub> hubContext
+            IHubContext<ChatHub> hubContext,
+            ICryptographicManager cryptographicManager
             )
         {
             _messageRepository = messageRepos ??
@@ -37,6 +41,9 @@ namespace ChatApi.WebApi.Controllers
 
             _hubContext = hubContext ??
                 throw new ArgumentNullException(nameof(hubContext));
+
+            _cryptographicManager = cryptographicManager ??
+                throw new ArgumentNullException(nameof(cryptographicManager));
         }
         [HttpGet(Name = "GetMessages")]
         public IActionResult Get()
@@ -54,21 +61,44 @@ namespace ChatApi.WebApi.Controllers
             }
 
             // Validate SenderId and RecipientId
-            var senderExists = _userRepository.Get(messageDto.SenderId) != null;
-            var recipientExists = _userRepository.Get(messageDto.RecipientId) != null;
+            var sender = _userRepository.Get(messageDto.SenderId);
+            var recipient = _userRepository.Get(messageDto.RecipientId);
 
-            if (!senderExists)
+            if (sender == null)
             {
                 return BadRequest("Invalid SenderId");
             }
 
-            if (!recipientExists)
+            if (recipient == null)
             {
                 return BadRequest("Invalid RecipientId");
             }
+            // Convert the recipient's public key from hex string to byte array
+            var recipientPublicKeyBytes = Enumerable.Range(0, recipient.PublicKey.Length)
+                .Where(x => x % 2 == 0)
+                .Select(x => Convert.ToByte(recipient.PublicKey.Substring(x, 2), 16))
+                .ToArray();
 
-            var message = _mapper.Map<Message>(messageDto);
-            message.MessageId = Guid.NewGuid();
+            // Convert the message content from hex string to byte array
+            var encryptedMessageBytes = Enumerable.Range(0, messageDto.Content.Length)
+                .Where(x => x % 2 == 0)
+                .Select(x => Convert.ToByte(messageDto.Content.Substring(x, 2), 16))
+                .ToArray();
+
+            // Decrypt message content using recipient's public key
+            var decryptedContentBytes = _cryptographicManager.Decrypt(encryptedMessageBytes, recipientPublicKeyBytes);
+            var decryptedContent = Encoding.UTF8.GetString(decryptedContentBytes);
+
+
+            var message = new Message
+            {
+                MessageId = Guid.NewGuid(),
+                SenderId = messageDto.SenderId,
+                RecipientId = messageDto.RecipientId,
+                Content = decryptedContent,
+                Timestamp = DateTime.UtcNow
+            };
+
             _messageRepository.Add(message);
             var result = _messageRepository.Save();
 

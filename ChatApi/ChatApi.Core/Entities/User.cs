@@ -12,6 +12,7 @@ namespace ChatApi.Core.Entities
         public string Email { get; set; }
         public string PasswordHash { get; set; }
         public string Username { get; set; }
+        public string PublicKey { get; set; }
         public List<Message> Messages { get; set; }
     }
 }

@@ -19,7 +19,11 @@ export class ChatWindowComponent implements OnInit, AfterViewChecked {
 
   @ViewChild('messagesContainer') private messagesContainer!: ElementRef;
 
-  constructor(private chatService: ChatService, private authService: AuthService, private router: Router, private signalRService: SignalRService) {
+  constructor(
+    private chatService: ChatService,
+    private authService: AuthService,
+    private router: Router,
+    private signalRService: SignalRService) {
     this.currentUser = this.authService.getCurrentUser();
   }
 
@@ -27,12 +31,12 @@ export class ChatWindowComponent implements OnInit, AfterViewChecked {
     this.signalRService.messageReceived$.subscribe((message: Message) => {
       if (this.selectedRecipient && (message.senderId === this.selectedRecipient.userId || message.recipientId === this.selectedRecipient.userId)) {
         this.messages.push(message);
-        this.scrollToBottom();
+        //this.scrollToBottom();
       }
     });
   }
   ngAfterViewChecked() {
-    this.scrollToBottom();
+    //this.scrollToBottom();
   }
 
   loadMessages() {

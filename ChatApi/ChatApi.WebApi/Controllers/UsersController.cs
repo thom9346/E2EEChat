@@ -24,9 +24,17 @@ namespace ChatApi.WebApi.Controllers
                 throw new ArgumentNullException(nameof(mapper));
         }
         [HttpGet(Name = "GetUsers")]
-        public IEnumerable<User> Get()
+        public IActionResult Get()
         {
-            return _userRepository.GetAll();
+            var users = _userRepository.GetAll();
+            var userDtos = users.Select(user => new UserDto
+            {
+                UserId = user.UserId,
+                Username = user.Username,
+                PublicKey = user.PublicKey // Include public key
+            }).ToList();
+
+            return Ok(userDtos);
         }
 
         [HttpPost]

@@ -10,6 +10,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace ChatApi.WebApi.Controllers
@@ -38,6 +39,8 @@ namespace ChatApi.WebApi.Controllers
 
             var user = _mapper.Map<User>(registerDto);
             user.PasswordHash = PasswordHasher.HashPassword(registerDto.Password);
+
+            user.PublicKey = registerDto.PublicKey;
 
             _userRepository.Add(user);
             if (!_userRepository.Save())

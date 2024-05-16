@@ -4,6 +4,7 @@ import { Message } from '../models/Message';
 import { AuthService } from '../services/auth.service';
 import { User } from '../models/User';
 import { SignalRService } from '../services/signal-r.service';
+import { EncryptionService } from '../services/encryption.service';
 @Component({
   selector: 'app-chat-input',
   templateUrl: './chat-input.component.html',
@@ -15,14 +16,26 @@ export class ChatInputComponent {
   newMessage: string = '';
   @Output() messageSent = new EventEmitter<Message>();
 
-  constructor(private authService: AuthService, private signalRService: SignalRService) {}
+  constructor(
+    private authService: AuthService,
+    private signalRService: SignalRService,
+    private encryptionService: EncryptionService) {}
 
   sendMessage() {
     if (this.newMessage.trim() && this.recipient) {
       const currentUser = this.authService.getCurrentUser();
+      const sharedSecret = localStorage.getItem(`sharedSecret_${this.recipient.userId}`);
+
+      if (!sharedSecret) {
+        console.error('Shared secret not found');
+        return;
+      }
+
+      const encryptedMessage = this.encryptionService.encryptData(this.newMessage, sharedSecret);
+
 
       const messageToSend: Message = {
-        content: this.newMessage,
+        content: encryptedMessage,
         timestamp: new Date(),
         senderId: currentUser.nameid,
         recipientId: this.recipient.userId

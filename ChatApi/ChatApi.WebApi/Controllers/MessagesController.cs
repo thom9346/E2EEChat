@@ -86,7 +86,7 @@ namespace ChatApi.WebApi.Controllers
                 .ToArray();
 
             // Decrypt message content using recipient's public key
-            var decryptedContentBytes = _cryptographicManager.Decrypt(encryptedMessageBytes, recipientPublicKeyBytes);
+             var decryptedContentBytes = _cryptographicManager.Decrypt(encryptedMessageBytes, recipientPublicKeyBytes);
             var decryptedContent = Encoding.UTF8.GetString(decryptedContentBytes);
 
 

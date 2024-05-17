@@ -1,8 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Message } from '../models/Message';
-
 
 @Injectable({
   providedIn: 'root'
@@ -13,15 +12,22 @@ export class ChatService {
 
   constructor(private http: HttpClient) {}
 
-  getMessages(): Observable<Message[]> {
-    return this.http.get<Message[]>(`${this.apiUrl}/Messages`);
+  private getHeaders() {
+    const token = localStorage.getItem('token');
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    console.log('Headers:', headers);
+    return headers;
   }
+
+  getMessages(): Observable<Message[]> {
+    return this.http.get<Message[]>(`${this.apiUrl}/Messages`, { headers: this.getHeaders() });
+  }
+
   getMessagesBetweenUsers(userId1: string, userId2: string): Observable<Message[]> {
-    return this.http.get<Message[]>(`${this.apiUrl}/Messages/between/${userId1}/${userId2}`);
+    return this.http.get<Message[]>(`${this.apiUrl}/Messages/between/${userId1}/${userId2}`, { headers: this.getHeaders() });
   }
 
   sendMessage(message: Message): Observable<Message> {
-    console.log("In here...")
-    return this.http.post<Message>(`${this.apiUrl}/Messages`, message);
+    return this.http.post<Message>(`${this.apiUrl}/Messages`, message, { headers: this.getHeaders() });
   }
 }

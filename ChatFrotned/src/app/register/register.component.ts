@@ -15,15 +15,15 @@ export class RegisterComponent {
 
   constructor(private authService: AuthService, private router: Router) {}
 
-  onSubmit() {
+  async onSubmit() {
     if (this.password !== this.confirmPassword) {
       console.error('Passwords do not match');
       return;
     }
 
-    this.authService.register(this.username, this.email, this.password).subscribe({
+    (await this.authService.register(this.username, this.email, this.password)).subscribe({
       next: () => this.router.navigate(['/login']),
-      error: (error) => console.error('Failed to register:', error)
+      error: (error: any) => console.error('Failed to register:', error)
     });
   }
 }

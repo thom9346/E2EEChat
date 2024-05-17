@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { DiffieHellmanService } from './diffie-hellman.service';
 
 @Injectable({
   providedIn: 'root'
@@ -11,7 +12,7 @@ export class AuthService {
   private currentUserSubject = new BehaviorSubject<any>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private diffieHellmanService: DiffieHellmanService) {
     const token = localStorage.getItem('token');
     if (token) {
       this.currentUserSubject.next(this.decodeToken(token));
@@ -27,8 +28,21 @@ export class AuthService {
     );
   }
 
-  register(username: string, email: string, password: string): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/Auth/Register`, { username, email, password });
+  async register(username: string, email: string, password: string): Promise<Observable<any>> {
+
+    const { publicKey, privateKey } = await this.diffieHellmanService.generateECDHKeyPair();
+
+    localStorage.setItem('privateKey', JSON.stringify(privateKey));
+    const publicKeyJson = JSON.stringify(publicKey);
+
+    const registrationData = {
+      username,
+      email,
+      password,
+      publicKey: publicKeyJson  
+    };
+
+      return this.http.post<any>(`${this.apiUrl}/Auth/Register`, registrationData);
   }
 
   logout() {

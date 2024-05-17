@@ -18,6 +18,7 @@ export class ChatWindowComponent implements OnInit, AfterViewChecked {
   messages: Message[] = [];
   selectedRecipient: User | null = null;
   currentUser: any;
+  currentGroup: string | null = null;
 
   @ViewChild('messagesContainer') private messagesContainer!: ElementRef;
 
@@ -34,9 +35,11 @@ export class ChatWindowComponent implements OnInit, AfterViewChecked {
 
   ngOnInit() {
     this.signalRService.messageReceived$.subscribe((message: Message) => {
-      if (this.selectedRecipient && (message.senderId === this.selectedRecipient.userId || message.recipientId === this.selectedRecipient.userId)) {
-        this.decryptAndAddMessage(message);
-        this.scrollToBottom();
+      if (this.shouldAttemptDecryption(message)) {
+        if (this.isMessageForCurrentChat(message)) {
+          this.decryptAndAddMessage(message);
+          this.scrollToBottom();
+        }
       }
     });
   }
@@ -52,7 +55,7 @@ export class ChatWindowComponent implements OnInit, AfterViewChecked {
       console.error('No private key found in local storage');
       return;
     }
-    if(this.selectedRecipient == null) {
+    if (this.selectedRecipient == null) {
       return;
     }
 
@@ -71,10 +74,17 @@ export class ChatWindowComponent implements OnInit, AfterViewChecked {
       if (this.selectedRecipient) {
         this.chatService.getMessagesBetweenUsers(this.currentUser.nameid, this.selectedRecipient.userId).subscribe({
           next: async (data) => {
-            this.messages = await Promise.all(data.map(async (message) => {
-              message.content = await this.encryptionService.decryptData(message.content, secretKey);
+            const decryptedMessages = await Promise.all(data.map(async (message) => {
+              if (this.shouldAttemptDecryption(message)) {
+                try {
+                  message.content = await this.encryptionService.decryptData(message.content, secretKey);
+                } catch (error) {
+                  console.error('Failed to decrypt message:', error);
+                }
+              }
               return message;
             }));
+            this.messages = decryptedMessages;
             this.scrollToBottom();
           },
           error: (error) => console.error('Failed to get messages:', error)
@@ -92,7 +102,7 @@ export class ChatWindowComponent implements OnInit, AfterViewChecked {
       console.error('No private key found in local storage');
       return;
     }
-    if(this.selectedRecipient == null) {
+    if (this.selectedRecipient == null) {
       return;
     }
 
@@ -108,19 +118,46 @@ export class ChatWindowComponent implements OnInit, AfterViewChecked {
       const secretArrayBuffer = await this.diffieHellmanService.computeSharedSecret(myPrivateKey, otherPublicKey);
       const secretKey = bufferToHex(secretArrayBuffer);
 
-      message.content = await this.encryptionService.decryptData(message.content, secretKey);
-      this.messages.push(message);
+      if (this.shouldAttemptDecryption(message)) {
+        try {
+          message.content = await this.encryptionService.decryptData(message.content, secretKey);
+          if (!this.messages.some(m => m.timestamp === message.timestamp && m.senderId === message.senderId)) {
+            this.messages.push(message);
+            this.scrollToBottom();
+          }
+        } catch (error) {
+          console.error('Failed to decrypt message:', error);
+        }
+      }
     } catch (error) {
       console.error('Failed to decrypt message:', error);
     }
   }
 
+  shouldAttemptDecryption(message: Message): boolean {
+    return message.senderId === this.currentUser.nameid || message.recipientId === this.currentUser.nameid;
+  }
+
+  isMessageForCurrentChat(message: Message): boolean {
+    return (message.senderId === this.currentUser.nameid && message.recipientId === this.selectedRecipient?.userId) ||
+           (message.senderId === this.selectedRecipient?.userId && message.recipientId === this.currentUser.nameid);
+  }
+
   onUserSelected(user: User) {
+    if (this.currentGroup) {
+      this.signalRService.leaveGroup(this.currentGroup);
+    }
     this.selectedRecipient = user;
+    const groupName = this.getGroupName(this.currentUser.nameid, user.userId);
+    this.currentGroup = groupName;
+    this.signalRService.joinGroup(groupName);
     this.loadMessages();
   }
 
   logout() {
+    if (this.currentGroup) {
+      this.signalRService.leaveGroup(this.currentGroup);
+    }
     this.authService.logout();
     this.router.navigate(['/login']);
   }
@@ -131,6 +168,10 @@ export class ChatWindowComponent implements OnInit, AfterViewChecked {
     } catch (err) {
       console.error('Could not scroll to bottom:', err);
     }
+  }
+
+  private getGroupName(userId1: string, userId2: string): string {
+    return [userId1, userId2].sort().join('_');
   }
 }
 

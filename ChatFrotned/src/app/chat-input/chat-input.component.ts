@@ -2,7 +2,7 @@ import { Component, Output, EventEmitter, Input } from '@angular/core';
 import { AuthService } from '../services/auth.service';
 import { SignalRService } from '../services/signal-r.service';
 import { DiffieHellmanService } from '../services/diffie-hellman.service';
-import { EncryptionService } from '../services/encryption.service';  // Import EncryptionService
+import { EncryptionService } from '../services/encryption.service';
 import { Message } from '../models/Message';
 import { User } from '../models/User';
 
@@ -20,8 +20,8 @@ export class ChatInputComponent {
   constructor(
     private authService: AuthService,
     private signalRService: SignalRService,
-    private diffieHellmanService: DiffieHellmanService,  // Inject DiffieHellmanService
-    private encryptionService: EncryptionService  // Inject EncryptionService
+    private diffieHellmanService: DiffieHellmanService,
+    private encryptionService: EncryptionService
   ) {}
 
   async sendMessage() {
@@ -56,7 +56,8 @@ export class ChatInputComponent {
             recipientId: this.recipient.userId
           };
 
-          this.signalRService.sendMessage(messageToSend).then(() => {
+          const groupName = this.getGroupName(currentUser.nameid, this.recipient.userId);
+          this.signalRService.sendMessage(messageToSend, groupName).then(() => {
             this.messageSent.emit(messageToSend);
             this.newMessage = '';
           }).catch(error => console.error('Failed to send message:', error));
@@ -65,6 +66,10 @@ export class ChatInputComponent {
         console.error('Failed to compute shared secret or encrypt message:', error);
       }
     }
+  }
+
+  private getGroupName(userId1: string, userId2: string): string {
+    return [userId1, userId2].sort().join('_');
   }
 }
 

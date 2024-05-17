@@ -21,6 +21,7 @@ export class ChatService {
   }
 
   sendMessage(message: Message): Observable<Message> {
+    console.log("In here...")
     return this.http.post<Message>(`${this.apiUrl}/Messages`, message);
   }
 }

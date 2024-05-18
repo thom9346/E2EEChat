@@ -25,8 +25,12 @@ export class ChatInputComponent {
   ) {}
 
   async sendMessage() {
+   
     if (this.newMessage.trim() && this.recipient) {
       const currentUser = this.authService.getCurrentUser();
+
+      console.log("This is user")
+      console.log(currentUser)
 
       const myPrivateKeyString = localStorage.getItem("privateKey");
       if (!myPrivateKeyString) {
@@ -52,11 +56,11 @@ export class ChatInputComponent {
           const messageToSend: Message = {
             content: encryptedMessage,
             timestamp: new Date(),
-            senderId: currentUser.nameid,
+            senderId: currentUser.userId,
             recipientId: this.recipient.userId
           };
 
-          const groupName = this.getGroupName(currentUser.nameid, this.recipient.userId);
+          const groupName = this.getGroupName(currentUser.userId, this.recipient.userId);
           this.signalRService.sendMessage(messageToSend, groupName).then(() => {
             this.messageSent.emit(messageToSend);
             this.newMessage = '';

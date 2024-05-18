@@ -24,8 +24,8 @@ export class ChatWindowComponent implements OnInit, AfterViewChecked {
 
   constructor(
     private chatService: ChatService,
-    private authService: AuthService, 
-    private router: Router, 
+    private authService: AuthService,
+    private router: Router,
     private signalRService: SignalRService,
     private diffieHellmanService: DiffieHellmanService,
     private encryptionService: EncryptionService
@@ -72,7 +72,7 @@ export class ChatWindowComponent implements OnInit, AfterViewChecked {
       const secretKey = bufferToHex(secretArrayBuffer);
 
       if (this.selectedRecipient) {
-        this.chatService.getMessagesBetweenUsers(this.currentUser.nameid, this.selectedRecipient.userId).subscribe({
+        this.chatService.getMessagesBetweenUsers(this.currentUser.userId, this.selectedRecipient.userId).subscribe({
           next: async (data) => {
             const decryptedMessages = await Promise.all(data.map(async (message) => {
               if (this.shouldAttemptDecryption(message)) {
@@ -135,12 +135,12 @@ export class ChatWindowComponent implements OnInit, AfterViewChecked {
   }
 
   shouldAttemptDecryption(message: Message): boolean {
-    return message.senderId === this.currentUser.nameid || message.recipientId === this.currentUser.nameid;
+    return message.senderId === this.currentUser.userId || message.recipientId === this.currentUser.userId;
   }
 
   isMessageForCurrentChat(message: Message): boolean {
-    return (message.senderId === this.currentUser.nameid && message.recipientId === this.selectedRecipient?.userId) ||
-           (message.senderId === this.selectedRecipient?.userId && message.recipientId === this.currentUser.nameid);
+    return (message.senderId === this.currentUser.userId && message.recipientId === this.selectedRecipient?.userId) ||
+           (message.senderId === this.selectedRecipient?.userId && message.recipientId === this.currentUser.userId);
   }
 
   onUserSelected(user: User) {
@@ -148,7 +148,7 @@ export class ChatWindowComponent implements OnInit, AfterViewChecked {
       this.signalRService.leaveGroup(this.currentGroup);
     }
     this.selectedRecipient = user;
-    const groupName = this.getGroupName(this.currentUser.nameid, user.userId);
+    const groupName = this.getGroupName(this.currentUser.userId, user.userId);
     this.currentGroup = groupName;
     this.signalRService.joinGroup(groupName);
     this.loadMessages();

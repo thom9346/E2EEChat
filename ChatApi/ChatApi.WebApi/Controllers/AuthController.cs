@@ -60,7 +60,14 @@ namespace ChatApi.WebApi.Controllers
             }
 
             var token = GenerateJwtToken(user);
-            return Ok(new { Token = token });
+
+            var tokenDto = new TokenDto
+            {
+                Jwt = token,
+                Message = "Login successful",
+                UserId = user.UserId
+            };
+            return Ok(tokenDto);
         }
 
         private string GenerateJwtToken(User user)

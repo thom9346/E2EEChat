@@ -25,5 +25,6 @@ namespace ChatApi.Infrastructure.Migrations
                 name: "PublicKey",
                 table: "Users");
         }
+
     }
 }

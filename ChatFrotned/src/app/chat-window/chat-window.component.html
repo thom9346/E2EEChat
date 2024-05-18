@@ -13,7 +13,7 @@
     </div>
     <div #messagesContainer class="messages-container">
       <mat-list>
-        <div *ngFor="let message of messages" class="message-item" [ngClass]="{'my-message': message.senderId === currentUser.nameid, 'their-message': message.senderId !== currentUser.nameid}">
+        <div *ngFor="let message of messages" class="message-item" [ngClass]="{'my-message': message.senderId === currentUser.userId, 'their-message': message.senderId !== currentUser.userId}">
           <div class="message-bubble">
             {{ message.content }}
           </div>

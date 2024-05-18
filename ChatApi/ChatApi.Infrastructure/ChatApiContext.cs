@@ -10,6 +10,9 @@ namespace ChatApi.Infrastructure
 {
     public class ChatApiContext : DbContext
     {
+        //commands i need to remember:
+        //dotnet ef migrations add AddConnectionEntity --project ChatApi.Infrastructure --startup-project ChatApi.WebApi
+        //dotnet ef database update --project ChatApi.Infrastructure --startup-project ChatApi.WebApi
         public ChatApiContext(DbContextOptions<ChatApiContext> options) : base(options)
         {
                 
@@ -22,25 +25,12 @@ namespace ChatApi.Infrastructure
         {
             base.OnModelCreating(modelBuilder);
 
-            // Configure entity relationships and properties here
             modelBuilder.Entity<User>().ToTable("Users");
             modelBuilder.Entity<Message>().ToTable("Messages");
 
             modelBuilder.Entity<Message>()
                 .Property(m => m.MessageId)
                 .ValueGeneratedOnAdd();
-
-            modelBuilder.Entity<Message>()
-                .HasOne(m => m.Sender)
-                .WithMany()
-                .HasForeignKey(m => m.SenderId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Message>()
-                .HasOne(m => m.Recipient)
-                .WithMany()
-                .HasForeignKey(m => m.RecipientId)
-                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

@@ -12,5 +12,6 @@ namespace ChatApi.Core.DTOs
         public string Email { get; set; }
         public string Password { get; set; }
         public string PublicKey { get; set; }
+        public string SigningPublicKey { get; set; }
     }
 }

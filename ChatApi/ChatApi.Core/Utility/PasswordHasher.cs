@@ -5,6 +5,14 @@ namespace ChatApi.Core.Utility
 {
     public static class PasswordHasher
     {
+        private static string _pepper;
+
+        public static void Initialize(string pepper)
+        {
+            _pepper = pepper 
+                ?? throw new ArgumentNullException(nameof(pepper));
+        }
+
         public static string HashPassword(string password)
         {
             byte[] salt = new byte[128 / 8];
@@ -14,7 +22,7 @@ namespace ChatApi.Core.Utility
             }
 
             string hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
-                password: password,
+                password: password + _pepper,
                 salt: salt,
                 prf: KeyDerivationPrf.HMACSHA256,
                 iterationCount: 100000,
@@ -25,6 +33,10 @@ namespace ChatApi.Core.Utility
 
         public static bool VerifyPassword(string hashedPasswordWithSalt, string passwordToCheck)
         {
+            if (string.IsNullOrEmpty(_pepper))
+                throw new InvalidOperationException("Pepper not initialized");
+
+
             var parts = hashedPasswordWithSalt.Split('.', 2);
             if (parts.Length != 2)
                 return false;
@@ -33,7 +45,7 @@ namespace ChatApi.Core.Utility
             var hashedPassword = parts[1];
 
             string checkHashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
-                password: passwordToCheck,
+                password: passwordToCheck + _pepper,
                 salt: salt,
                 prf: KeyDerivationPrf.HMACSHA256,
                 iterationCount: 100000,

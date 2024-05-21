@@ -13,5 +13,6 @@ namespace ChatApi.Core.Entities
         public string PasswordHash { get; set; }
         public string Username { get; set; }
         public string PublicKey { get; set; }
+        public string SigningPublicKey { get; set; }
     }
 }

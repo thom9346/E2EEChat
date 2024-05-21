@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using ChatApi.Core.Utility;
 
 namespace ChatApi
 {
@@ -88,6 +89,9 @@ namespace ChatApi
             builder.Services.AddAutoMapper(typeof(MappingProfile));
             builder.Services.AddDbContext<ChatApiContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+            string pepper = builder.Configuration["Pepper"];
+            PasswordHasher.Initialize(pepper);
 
             builder.Services.AddScoped<IRepository<Message>, MessageRepository>();
             builder.Services.AddScoped<IRepository<User>, UserRepository>();

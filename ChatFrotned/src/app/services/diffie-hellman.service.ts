@@ -22,6 +22,25 @@ export class DiffieHellmanService {
     return { publicKey, privateKey };
   }
 
+  async generateSigningKeyPair(): Promise<{ publicKey: string, privateKey: string }> {
+    const keyPair = await crypto.subtle.generateKey(
+      {
+        name: 'ECDSA',
+        namedCurve: 'P-256'
+      },
+      true, // extractable
+      ['sign', 'verify']
+    );
+  
+    const publicKey = await crypto.subtle.exportKey('spki', keyPair.publicKey);
+    const privateKey = await crypto.subtle.exportKey('pkcs8', keyPair.privateKey);
+  
+    const publicKeyBase64 = btoa(String.fromCharCode(...new Uint8Array(publicKey))); 
+    const privateKeyBase64 = btoa(String.fromCharCode(...new Uint8Array(privateKey))); 
+
+    return { publicKey: publicKeyBase64, privateKey: privateKeyBase64 }; 
+  }
+
   async computeSharedSecret(privateKeyJwk: JsonWebKey, otherPublicKey: JsonWebKey): Promise<ArrayBuffer> {
     const privateKey = await crypto.subtle.importKey(
       'jwk',
@@ -56,4 +75,33 @@ export class DiffieHellmanService {
 
     return sharedSecret;
   }
+  async signData(data: string, privateKeyBase64: string): Promise<string> { //CHANGE: Accept Base64 string
+    const privateKeyArrayBuffer = Uint8Array.from(atob(privateKeyBase64), c => c.charCodeAt(0)).buffer; //CHANGE: Convert from Base64
+    const privateKey = await crypto.subtle.importKey(
+      'pkcs8',
+      privateKeyArrayBuffer,
+      {
+        name: 'ECDSA',
+        namedCurve: 'P-256'
+      },
+      false,
+      ['sign']
+    );
+
+    const encoder = new TextEncoder();
+    const encodedData = encoder.encode(data);
+
+    const signature = await crypto.subtle.sign(
+      {
+        name: 'ECDSA',
+        hash: { name: 'SHA-256' }
+      },
+      privateKey,
+      encodedData
+    );
+
+    return btoa(String.fromCharCode(...new Uint8Array(signature))); 
+  }
+
+  
 }

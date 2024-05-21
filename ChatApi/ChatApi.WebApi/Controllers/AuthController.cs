@@ -24,9 +24,14 @@ namespace ChatApi.WebApi.Controllers
 
         public AuthController(IRepository<User> userRepository, IMapper mapper, IConfiguration configuration)
         {
-            _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
-            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            _userRepository = userRepository 
+                ?? throw new ArgumentNullException(nameof(userRepository));
+
+            _mapper = mapper 
+                ?? throw new ArgumentNullException(nameof(mapper));
+
+            _configuration = configuration 
+                ?? throw new ArgumentNullException(nameof(configuration));
         }
         [HttpPost("register")]
         public IActionResult Register([FromBody] RegisterDto registerDto)
@@ -38,6 +43,8 @@ namespace ChatApi.WebApi.Controllers
 
             var user = _mapper.Map<User>(registerDto);
             user.PasswordHash = PasswordHasher.HashPassword(registerDto.Password);
+            user.PublicKey = registerDto.PublicKey;
+            user.SigningPublicKey = registerDto.SigningPublicKey; // Store the signing public key
 
             _userRepository.Add(user);
             if (!_userRepository.Save())
@@ -57,6 +64,18 @@ namespace ChatApi.WebApi.Controllers
             if (user == null || !PasswordHasher.VerifyPassword(user.PasswordHash, loginDto.Password))
             {
                 return Unauthorized();
+            }
+
+            var digitalSignature = new DigitalSignature();
+            digitalSignature.ImportPublicKey(user.SigningPublicKey);
+            var isValidSignature = digitalSignature.VerifyData(
+                Encoding.UTF8.GetBytes(loginDto.Username),
+                loginDto.Signature
+            );
+
+            if (!isValidSignature)
+            {
+                return Unauthorized("Invalid signature.");
             }
 
             var token = GenerateJwtToken(user);

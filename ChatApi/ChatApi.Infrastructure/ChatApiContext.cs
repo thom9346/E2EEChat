@@ -19,6 +19,7 @@ namespace ChatApi.Infrastructure
         }
         public DbSet<User> Users { get; set; }
         public DbSet<Message> Messages { get; set; }
+        public DbSet<Friendship> Friendships { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -27,6 +28,7 @@ namespace ChatApi.Infrastructure
 
             modelBuilder.Entity<User>().ToTable("Users");
             modelBuilder.Entity<Message>().ToTable("Messages");
+            modelBuilder.Entity<Friendship>().ToTable("Friendships");
 
             modelBuilder.Entity<Message>()
                 .Property(m => m.MessageId)

@@ -4,6 +4,7 @@ using ChatApi.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChatApi.Infrastructure.Migrations
 {
     [DbContext(typeof(ChatApiContext))]
-    partial class ChatApiContextModelSnapshot : ModelSnapshot
+    [Migration("20240523175341_AddFriendshipEntity")]
+    partial class AddFriendshipEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -42,13 +45,6 @@ namespace ChatApi.Infrastructure.Migrations
 
                     b.Property<Guid>("RequesterId")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("TokenExpiration")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("VerificationToken")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 

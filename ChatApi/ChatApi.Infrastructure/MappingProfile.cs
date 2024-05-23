@@ -22,5 +22,7 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.PasswordHash, opt => opt.Ignore()) // Password hash will be handled separately
             .ForMember(dest => dest.UserId, opt => opt.Ignore()) // UserId will be handled separately
             .ForMember(dest => dest.Email, opt => opt.Ignore()); // Email will be handled separately
+
+        CreateMap<Friendship, FriendshipDto>().ReverseMap();
     }
 }

@@ -9,6 +9,7 @@ using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using ChatApi.Core.Utility;
+using ChatApi.Core.Services;
 
 namespace ChatApi
 {
@@ -95,6 +96,11 @@ namespace ChatApi
 
             builder.Services.AddScoped<IRepository<Message>, MessageRepository>();
             builder.Services.AddScoped<IRepository<User>, UserRepository>();
+            builder.Services.AddScoped<IRepository<Friendship>, FriendshipRepository>();
+            builder.Services.AddScoped<IEmailService, EmailService>();
+            builder.Services.AddScoped<IFriendService, FriendService>();
+            builder.Services.AddScoped<ICryptographicManager, CryptographicManager>();
+
 
             builder.Services.AddSignalR();
 

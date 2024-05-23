@@ -1,11 +1,24 @@
 ﻿using ChatApi.Core.Interfaces;
+using Microsoft.Extensions.Configuration;
 using System.Security.Cryptography;
-
+using System.Text;
 
 namespace ChatApi.Core.Services
 {
-    public  class CryptographicManager : ICryptographicManager
+    public class CryptographicManager : ICryptographicManager
     {
+        private readonly byte[] _key;
+
+        public CryptographicManager(IConfiguration configuration)
+        {
+            var keyString = configuration["Encryption:Key"];
+            if (string.IsNullOrEmpty(keyString) || keyString.Length != 32)
+            {
+                throw new InvalidOperationException("Invalid encryption key.");
+            }
+            _key = Encoding.UTF8.GetBytes(keyString);
+        }
+
         public byte[] CryptographicRandomNumberGenerator(int length)
         {
             byte[] randomBytes = new byte[length];
@@ -24,21 +37,51 @@ namespace ChatApi.Core.Services
                 return pbkdf2.GetBytes(keySize);
             }
         }
-        public byte[] Decrypt(byte[] dataToDecrypt, byte[] key)
+
+        public byte[] Encrypt(byte[] dataToEncrypt, out byte[] iv)
         {
             using (var aesCbc = Aes.Create())
             {
+                aesCbc.Key = _key;
                 aesCbc.Mode = CipherMode.CBC;
                 aesCbc.Padding = PaddingMode.PKCS7;
 
-                var iv = new byte[aesCbc.BlockSize / 8];
-                Buffer.BlockCopy(dataToDecrypt, 0, iv, 0, iv.Length);
+                aesCbc.GenerateIV();
+                iv = aesCbc.IV;
+
+                byte[] encryptedData;
+
+                using (var encryptor = aesCbc.CreateEncryptor(aesCbc.Key, iv))
+                using (var msEncrypt = new MemoryStream())
+                {
+                    using (var csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write))
+                    {
+                        csEncrypt.Write(dataToEncrypt, 0, dataToEncrypt.Length);
+                        csEncrypt.FlushFinalBlock();
+                    }
+                    encryptedData = msEncrypt.ToArray();
+                }
+
+                var combinedIvEncData = new byte[iv.Length + encryptedData.Length];
+                Buffer.BlockCopy(iv, 0, combinedIvEncData, 0, iv.Length);
+                Buffer.BlockCopy(encryptedData, 0, combinedIvEncData, iv.Length, encryptedData.Length);
+
+                return combinedIvEncData;
+            }
+        }
+
+        public byte[] Decrypt(byte[] dataToDecrypt, byte[] iv)
+        {
+            using (var aesCbc = Aes.Create())
+            {
+                aesCbc.Key = _key;
+                aesCbc.Mode = CipherMode.CBC;
+                aesCbc.Padding = PaddingMode.PKCS7;
+
+                aesCbc.IV = iv;
 
                 var actualData = new byte[dataToDecrypt.Length - iv.Length];
                 Buffer.BlockCopy(dataToDecrypt, iv.Length, actualData, 0, actualData.Length);
-
-                aesCbc.Key = key;
-                aesCbc.IV = iv;
 
                 using (var decryptor = aesCbc.CreateDecryptor(aesCbc.Key, aesCbc.IV))
                 using (var msDecrypt = new MemoryStream(actualData))
@@ -52,37 +95,6 @@ namespace ChatApi.Core.Services
                     }
                     return decryptedData.ToArray();
                 }
-            }
-        }
-
-        public byte[] Encrypt(byte[] dataToEncrypt, byte[] key)
-        {
-            using (var aesCbc = Aes.Create())
-            {
-                aesCbc.Key = key;
-                aesCbc.Mode = CipherMode.CBC;
-                aesCbc.Padding = PaddingMode.PKCS7;
-
-                aesCbc.GenerateIV();
-                byte[] iv = aesCbc.IV;
-
-                byte[] encryptedData;
-
-                using (var encryptor = aesCbc.CreateEncryptor(aesCbc.Key, iv))
-                using (var msEncrypt = new MemoryStream())
-                {
-                    using (var csEncrypt = new CryptoStream(msEncrypt, encryptor, CryptoStreamMode.Write))
-                    {
-                        csEncrypt.Write(dataToEncrypt, 0, dataToEncrypt.Length);
-                    }
-                    encryptedData = msEncrypt.ToArray();
-                }
-
-                var combinedIvEncData = new byte[iv.Length + encryptedData.Length];
-                Buffer.BlockCopy(iv, 0, combinedIvEncData, 0, iv.Length);
-                Buffer.BlockCopy(encryptedData, 0, combinedIvEncData, iv.Length, encryptedData.Length);
-
-                return combinedIvEncData;
             }
         }
     }

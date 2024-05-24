@@ -17,8 +17,6 @@ namespace ChatApi.Core.Services
         private readonly ICryptographicManager _cryptographicManager;
         private readonly IEmailService _emailService;
 
-        private readonly byte[] _encryptionKey = Encoding.UTF8.GetBytes("your-32-character-key");
-
         public FriendService(IRepository<User> userRepository, IRepository<Friendship> friendshipRepository, IEmailService emailService, ICryptographicManager cryptographicManager)
         {
             _userRepository = userRepository;
@@ -83,6 +81,11 @@ namespace ChatApi.Core.Services
             var iv = Convert.FromBase64String(tokenParts[1]);
 
             var decryptedToken = Encoding.UTF8.GetString(_cryptographicManager.Decrypt(encryptedToken, iv));
+
+            //sanitize
+            decryptedToken = decryptedToken.Trim();
+            token = token.Trim();
+
             if (decryptedToken != token)
             {
                 throw new ArgumentException("Invalid token.");
@@ -93,6 +96,29 @@ namespace ChatApi.Core.Services
 
             _friendshipRepository.Edit(friendship);
             _friendshipRepository.Save();
+        }
+        public string CheckFriendRequestStatus(Guid userId, Guid otherUserId)
+        {
+            var friendship = _friendshipRepository.GetAll().FirstOrDefault(f =>
+                (f.RequesterId == userId && f.RequesteeId == otherUserId) ||
+                (f.RequesterId == otherUserId && f.RequesteeId == userId));
+
+            if (friendship == null)
+            {
+                return "no_request";
+            }
+            else if (friendship.IsConfirmed)
+            {
+                return "friends";
+            }
+            else if (friendship.RequesterId == userId)
+            {
+                return "request_sent";
+            }
+            else
+            {
+                return "request_received";
+            }
         }
     }
 }

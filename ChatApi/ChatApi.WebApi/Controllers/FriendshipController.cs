@@ -12,12 +12,10 @@ namespace ChatApi.WebApi.Controllers
     public class FriendshipController : ControllerBase
     {
         private readonly IFriendService _friendService;
-        private readonly IMapper _mapper;
 
-        public FriendshipController(IFriendService friendService, IMapper mapper)
+        public FriendshipController(IFriendService friendService)
         {
             _friendService = friendService;
-            _mapper = mapper;
         }
 
         [HttpPost("send-friend-request")]
@@ -26,25 +24,37 @@ namespace ChatApi.WebApi.Controllers
             try
             {
                 await _friendService.SendFriendRequest(requestDto.RequesterId, requestDto.RequesteeEmail);
-                return Ok("Friend request sent.");
+                return Ok(new { message = "Friend request sent." });
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
         }
-
-        [HttpGet("verify-friend-request")]
-        public IActionResult VerifyFriendRequest(Guid requestId, string token)
+        [HttpPost("confirm-friend-request")]
+        public IActionResult ConfirmFriendRequest([FromBody] ConfirmFriendRequestDto requestDto)
         {
             try
             {
-                _friendService.ConfirmFriendRequest(requestId, token);
-                return Ok("Friend request confirmed.");
+                _friendService.ConfirmFriendRequest(requestDto.RequestId, requestDto.Token);
+                return Ok(new { message = "Friend request confirmed." });
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+        [HttpGet("check-friend-request-status/{userId}/{otherUserId}")]
+        public IActionResult CheckFriendRequestStatus(Guid userId, Guid otherUserId)
+        {
+            try
+            {
+                var status = _friendService.CheckFriendRequestStatus(userId, otherUserId);
+                return Ok(new { status });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
             }
         }
     }

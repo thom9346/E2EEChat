@@ -2,6 +2,7 @@ import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { User } from '../models/User';
 import { UserService } from '../services/user.service';
 import { AuthService } from '../services/auth.service';
+import { FriendService } from '../services/friend.service';
 
 @Component({
   selector: 'app-user-list',
@@ -13,7 +14,10 @@ export class UserListComponent {
   currentUser: any;
   @Output() userSelected = new EventEmitter<User>();
 
-  constructor(private userService: UserService, private authService: AuthService) {
+  constructor(
+    private userService: UserService,
+    private authService: AuthService,
+    private friendService: FriendService) {
     this.currentUser = this.authService.getCurrentUser();
   }
 

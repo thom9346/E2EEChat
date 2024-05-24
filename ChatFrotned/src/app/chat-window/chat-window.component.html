@@ -20,6 +20,14 @@
         </div>
       </mat-list>
     </div>
-    <app-chat-input [recipient]="selectedRecipient"></app-chat-input>
+    <div *ngIf="!areFriends" class="add-friend-container" style="text-align: center;">
+      <p *ngIf="friendRequestReceived">This user has already sent you a friend request.</p>
+      <p *ngIf="!friendRequestReceived && !friendRequestSent">You are not friends with this user.</p>
+      <button mat-raised-button color="primary" (click)="sendFriendRequest()" *ngIf="!friendRequestReceived && !friendRequestSent">
+        Add Friend
+      </button>
+      <p *ngIf="friendRequestSent">Friend request sent.</p>
+    </div>
+    <app-chat-input *ngIf="areFriends" [recipient]="selectedRecipient"></app-chat-input>
   </div>
 </div>

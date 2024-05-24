@@ -16,6 +16,7 @@ import {MatCardModule} from '@angular/material/card';
 import { AuthGuard } from './guards/auth.guard';
 import { RegisterComponent } from './register/register.component';
 import { UserListComponent } from './user-list/user-list.component';
+import { VerifyFriendRequestComponent } from './verify-friend-request/verify-friend-request.component';
 
 
 @NgModule({
@@ -25,7 +26,8 @@ import { UserListComponent } from './user-list/user-list.component';
     ChatInputComponent,
     LoginComponent,
     RegisterComponent,
-    UserListComponent
+    UserListComponent,
+    VerifyFriendRequestComponent
   ],
   imports: [
     BrowserModule,

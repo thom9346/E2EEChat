@@ -7,6 +7,7 @@ import { User } from '../models/User';
 import { SignalRService } from '../services/signal-r.service';
 import { DiffieHellmanService } from '../services/diffie-hellman.service';
 import { EncryptionService } from '../services/encryption.service';
+import { FriendService } from '../services/friend.service';
 
 @Component({
   selector: 'app-chat-window',
@@ -19,6 +20,9 @@ export class ChatWindowComponent implements OnInit, AfterViewChecked {
   selectedRecipient: User | null = null;
   currentUser: any;
   currentGroup: string | null = null;
+  areFriends: boolean = false;
+  friendRequestSent: boolean = false;
+  friendRequestReceived: boolean = false;
 
   @ViewChild('messagesContainer') private messagesContainer!: ElementRef;
 
@@ -28,7 +32,8 @@ export class ChatWindowComponent implements OnInit, AfterViewChecked {
     private router: Router,
     private signalRService: SignalRService,
     private diffieHellmanService: DiffieHellmanService,
-    private encryptionService: EncryptionService
+    private encryptionService: EncryptionService,
+    private friendService: FriendService
   ) {
     this.currentUser = this.authService.getCurrentUser();
   }
@@ -151,7 +156,33 @@ export class ChatWindowComponent implements OnInit, AfterViewChecked {
     const groupName = this.getGroupName(this.currentUser.userId, user.userId);
     this.currentGroup = groupName;
     this.signalRService.joinGroup(groupName);
+    this.checkFriendRequestStatus(user);
     this.loadMessages();
+  }
+
+  checkFriendRequestStatus(user: User) {
+    this.friendService.checkFriendRequestStatus(this.currentUser.userId, user.userId).subscribe({
+      next: (response) => {
+        this.areFriends = response.status === 'friends';
+        this.friendRequestSent = response.status === 'request_sent';
+        this.friendRequestReceived = response.status === 'request_received';
+      },
+      error: (error) => {
+        console.error('Failed to check friend request status:', error);
+      }
+    });
+  }
+
+  sendFriendRequest() {
+    if (this.selectedRecipient) {
+      this.friendService.sendFriendRequest(this.currentUser.userId, this.selectedRecipient.email).subscribe({
+        next: (response) => {
+          console.log('Friend request sent:', response);
+          this.friendRequestSent = true;
+        },
+        error: (error) => console.error('Failed to send friend request:', error)
+      });
+    }
   }
 
   logout() {

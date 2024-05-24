@@ -10,5 +10,6 @@ namespace ChatApi.Core.Interfaces
     {
         public Task SendFriendRequest(Guid requesterId, string requesteeEmail);
         public void ConfirmFriendRequest(Guid requestId, string token);
+        public string CheckFriendRequestStatus(Guid userId, Guid otherUserId);
     }
 }

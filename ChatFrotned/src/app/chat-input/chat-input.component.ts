@@ -5,6 +5,7 @@ import { DiffieHellmanService } from '../services/diffie-hellman.service';
 import { EncryptionService } from '../services/encryption.service';
 import { Message } from '../models/Message';
 import { User } from '../models/User';
+import { RsaService } from '../services/rsa.service';
 
 @Component({
   selector: 'app-chat-input',
@@ -21,24 +22,27 @@ export class ChatInputComponent {
     private authService: AuthService,
     private signalRService: SignalRService,
     private diffieHellmanService: DiffieHellmanService,
-    private encryptionService: EncryptionService
+    private encryptionService: EncryptionService,
+    private rsaService: RsaService
   ) {}
 
   async sendMessage() {
    
     if (this.newMessage.trim() && this.recipient) {
       const currentUser = this.authService.getCurrentUser();
+      const privateKeyString = localStorage.getItem("privateKey");
+      const privateSigningKeyString = localStorage.getItem("privateSigningKey");
 
-      console.log("This is user")
+      const publicSigningKeyString = localStorage.getItem("publicSigningKey");
+      console.log("current user")
       console.log(currentUser)
-
-      const myPrivateKeyString = localStorage.getItem("privateKey");
-      if (!myPrivateKeyString) {
-        console.error('No private key found in local storage');
+      console.log(publicSigningKeyString)
+      if (!privateKeyString || !privateSigningKeyString || !publicSigningKeyString) {
+        console.error('No private key or signing key found in local storage');
         return;
       }
 
-      const myPrivateKey: JsonWebKey = JSON.parse(myPrivateKeyString);
+      const myPrivateKey: JsonWebKey = JSON.parse(privateKeyString);
       const otherPublicKey: JsonWebKey = JSON.parse(this.recipient.publicKey);
 
       if (!otherPublicKey) {
@@ -46,18 +50,22 @@ export class ChatInputComponent {
         return;
       }
 
+
       try {
         const secretArrayBuffer = await this.diffieHellmanService.computeSharedSecret(myPrivateKey, otherPublicKey);
         const secretKey = bufferToHex(secretArrayBuffer);
 
         const encryptedMessage = await this.encryptionService.encryptData(this.newMessage, secretKey);
+        const signature = await this.rsaService.signData(this.newMessage, privateSigningKeyString);
 
         if (encryptedMessage) {
           const messageToSend: Message = {
             content: encryptedMessage,
+            signature: signature,
             timestamp: new Date(),
             senderId: currentUser.userId,
-            recipientId: this.recipient.userId
+            recipientId: this.recipient.userId,
+            signingPublicKey: publicSigningKeyString
           };
 
           const groupName = this.getGroupName(currentUser.userId, this.recipient.userId);

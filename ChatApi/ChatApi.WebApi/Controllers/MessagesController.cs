@@ -18,12 +18,14 @@ namespace ChatApi.WebApi.Controllers
     {
         private readonly IRepository<Message> _messageRepository;
         private readonly IRepository<User> _userRepository;
+        private readonly IFriendService _friendService;
         private readonly IMapper _mapper;
         private readonly IHubContext<ChatHub> _hubContext;
 
         public MessagesController(
             IRepository<Message> messageRepos,
             IRepository<User> userRepos,
+            IFriendService friendService,
             IMapper mapper,
             IHubContext<ChatHub> hubContext
             )
@@ -33,6 +35,10 @@ namespace ChatApi.WebApi.Controllers
 
             _userRepository = userRepos ??
                 throw new ArgumentNullException(nameof(userRepos));
+
+            _friendService = friendService ??
+                throw new ArgumentNullException(nameof(friendService));
+
 
             _mapper = mapper ?? 
                 throw new ArgumentNullException(nameof(mapper));
@@ -55,7 +61,6 @@ namespace ChatApi.WebApi.Controllers
                 return BadRequest("MessageDto cannot be null");
             }
 
-            // Validate SenderId and RecipientId
             var senderExists = _userRepository.Get(messageDto.SenderId) != null;
             var recipientExists = _userRepository.Get(messageDto.RecipientId) != null;
 
@@ -68,9 +73,17 @@ namespace ChatApi.WebApi.Controllers
             {
                 return BadRequest("Invalid RecipientId");
             }
+            var checkFriends = _friendService.CheckFriendRequestStatus(messageDto.SenderId, messageDto.RecipientId);
+            if (checkFriends != "friends")
+            {
+                return Forbid("You can only send messages to friends.");
+            }
 
             var message = _mapper.Map<Message>(messageDto);
             message.MessageId = Guid.NewGuid();
+            message.Signature = messageDto.Signature;
+            message.SigningPublicKey = messageDto.SigningPublicKey;
+
             _messageRepository.Add(message);
             var result = _messageRepository.Save();
 
@@ -104,7 +117,17 @@ namespace ChatApi.WebApi.Controllers
                 .OrderBy(m => m.Timestamp)
                 .ToList();
 
-            var messageDtos = _mapper.Map<IEnumerable<MessageDto>>(messages);
+            var messageDtos = messages.Select(m => new MessageDto
+            {
+                MessageId = m.MessageId,
+                Content = m.Content,
+                Timestamp = m.Timestamp,
+                SenderId = m.SenderId,
+                RecipientId = m.RecipientId,
+                SigningPublicKey = m.SigningPublicKey,
+                Signature = m.Signature
+            });
+
             return Ok(messageDtos);
         }
     }

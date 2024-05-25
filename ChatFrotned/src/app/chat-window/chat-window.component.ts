@@ -8,6 +8,7 @@ import { SignalRService } from '../services/signal-r.service';
 import { DiffieHellmanService } from '../services/diffie-hellman.service';
 import { EncryptionService } from '../services/encryption.service';
 import { FriendService } from '../services/friend.service';
+import { RsaService } from '../services/rsa.service';
 
 @Component({
   selector: 'app-chat-window',
@@ -33,7 +34,8 @@ export class ChatWindowComponent implements OnInit, AfterViewChecked {
     private signalRService: SignalRService,
     private diffieHellmanService: DiffieHellmanService,
     private encryptionService: EncryptionService,
-    private friendService: FriendService
+    private friendService: FriendService,
+    private rsaService: RsaService
   ) {
     this.currentUser = this.authService.getCurrentUser();
   }
@@ -79,9 +81,22 @@ export class ChatWindowComponent implements OnInit, AfterViewChecked {
       if (this.selectedRecipient) {
         this.chatService.getMessagesBetweenUsers(this.currentUser.userId, this.selectedRecipient.userId).subscribe({
           next: async (data) => {
+            console.log("the data")
+            console.log(data)
             const decryptedMessages = await Promise.all(data.map(async (message) => {
               if (this.shouldAttemptDecryption(message)) {
                 try {
+                  console.log("In the load message")
+                  console.log(message.signingPublicKey)
+                  console.log(message)
+                  const decryptedMessage = await this.encryptionService.decryptData(message.content, secretKey);
+                  const isVerified = await this.rsaService.verifySignature(decryptedMessage, message.signature, message.signingPublicKey);
+
+                  if (!isVerified) {
+                    console.error('Failed to verify message signature');
+                    return null;
+                  }
+
                   message.content = await this.encryptionService.decryptData(message.content, secretKey);
                 } catch (error) {
                   console.error('Failed to decrypt message:', error);
@@ -89,7 +104,7 @@ export class ChatWindowComponent implements OnInit, AfterViewChecked {
               }
               return message;
             }));
-            this.messages = decryptedMessages;
+            this.messages = decryptedMessages.filter(m => m !== null) as Message[]; //filter ou t any possible null messages
             this.scrollToBottom();
           },
           error: (error) => console.error('Failed to get messages:', error)
@@ -102,6 +117,7 @@ export class ChatWindowComponent implements OnInit, AfterViewChecked {
 
   async decryptAndAddMessage(message: Message) {
     const myPrivateKeyString = localStorage.getItem("privateKey");
+    const senderPublicKey = message.signingPublicKey;
 
     if (!myPrivateKeyString) {
       console.error('No private key found in local storage');
@@ -125,7 +141,19 @@ export class ChatWindowComponent implements OnInit, AfterViewChecked {
 
       if (this.shouldAttemptDecryption(message)) {
         try {
-          message.content = await this.encryptionService.decryptData(message.content, secretKey);
+          console.log("whats in message")
+          console.log(message)
+          const decryptedMessage = await this.encryptionService.decryptData(message.content, secretKey);
+          const isVerified = await this.rsaService.verifySignature(decryptedMessage, message.signature, senderPublicKey);
+          
+          //message.content = await this.encryptionService.decryptData(message.content, secretKey);
+
+          if (!isVerified) {
+            console.error('Failed to verify message signature');
+            return;
+          }
+
+          message.content = decryptedMessage;
           if (!this.messages.some(m => m.timestamp === message.timestamp && m.senderId === message.senderId)) {
             this.messages.push(message);
             this.scrollToBottom();

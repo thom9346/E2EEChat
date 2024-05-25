@@ -22,15 +22,13 @@ export class VerifyFriendRequestComponent implements OnInit {
     let token = this.route.snapshot.queryParamMap.get('token');
 
     if (requestId && token) {
-      // Replace spaces with '+'
+      //spaces from queryparams could be tranlated wrongly
       token = token.replace(/ /g, '+');
 
-      // Ensure token is URL decoded
       const decodedToken = decodeURIComponent(token.trim());
       this.friendService.confirmFriendRequest(requestId, decodedToken).subscribe({
         next: (response) => {
           this.verificationStatus = 'Friend request confirmed successfully.';
-          // Optionally, redirect to another page or show more detailed info
         },
         error: (error) => {
           console.error('Failed to confirm friend request:', error);

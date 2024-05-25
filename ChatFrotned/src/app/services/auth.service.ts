@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { DiffieHellmanService } from './diffie-hellman.service';
+import { RsaService } from './rsa.service';
 
 @Injectable({
   providedIn: 'root'
@@ -12,7 +13,10 @@ export class AuthService {
   private currentUserSubject = new BehaviorSubject<any>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
-  constructor(private http: HttpClient, private diffieHellmanService: DiffieHellmanService) {
+  constructor(
+    private http: HttpClient,
+    private diffieHellmanService: DiffieHellmanService,
+    private rsaService: RsaService) {
     const token = localStorage.getItem('token');
     const userId = localStorage.getItem('userId');
     if (token && userId) {
@@ -27,8 +31,8 @@ export class AuthService {
       throw new Error('No private signing key found in local storage');
     }
     return new Observable(observer => {
-      this.diffieHellmanService.signData(username, privateKey).then(signature => { //CHANGE: Adjusted to handle Base64 string
-        this.http.post<any>(`${this.apiUrl}/Auth/Login`, { username, password, signature }).pipe(
+
+        this.http.post<any>(`${this.apiUrl}/Auth/Login`, { username, password }).pipe(
           tap(response => {
             localStorage.setItem('token', response.jwt);
             localStorage.setItem('userId', response.userId.toString());
@@ -43,25 +47,27 @@ export class AuthService {
             observer.error(error);
           }
         });
-      }).catch(error => observer.error(error));
+
     });
   }
 
   async register(username: string, email: string, password: string): Promise<Observable<any>> {
     const { publicKey: dhPublicKey, privateKey: dhPrivateKey } = await this.diffieHellmanService.generateECDHKeyPair();
-    const { publicKey: signingPublicKey, privateKey: signingPrivateKey } = await this.diffieHellmanService.generateSigningKeyPair();
+    const { publicKey: signingPublicKey, privateKey: signingPrivateKey } = await this.rsaService.generateRSASigningKeyPair();
+    //const { publicKey: signingPublicKey, privateKey: signingPrivateKey } = await this.diffieHellmanService.generateSigningKeyPair();
 
     localStorage.setItem('privateKey', JSON.stringify(dhPrivateKey));
     localStorage.setItem('privateSigningKey', signingPrivateKey);
+    localStorage.setItem('publicSigningKey', signingPublicKey);
+
     const publicKeyJson = JSON.stringify(dhPublicKey);
-    const signingPublicKeyJson = signingPublicKey;
 
     const registrationData = {
       username,
       email,
       password,
       publicKey: publicKeyJson,
-      signingPublicKey: signingPublicKeyJson
+      signingPublicKey: signingPublicKey
     };
 
     return this.http.post<any>(`${this.apiUrl}/Auth/Register`, registrationData);

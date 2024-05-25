@@ -66,17 +66,17 @@ namespace ChatApi.WebApi.Controllers
                 return Unauthorized();
             }
 
-            var digitalSignature = new DigitalSignature();
-            digitalSignature.ImportPublicKey(user.SigningPublicKey);
-            var isValidSignature = digitalSignature.VerifyData(
-                Encoding.UTF8.GetBytes(loginDto.Username),
-                loginDto.Signature
-            );
+            //var digitalSignature = new DigitalSignature();
+            //digitalSignature.ImportPublicKey(user.SigningPublicKey);
+            //var isValidSignature = digitalSignature.VerifyData(
+            //    Encoding.UTF8.GetBytes(loginDto.Username),
+            //    loginDto.Signature
+            //);
 
-            if (!isValidSignature)
-            {
-                return Unauthorized("Invalid signature.");
-            }
+            //if (!isValidSignature)
+            //{
+            //    return Unauthorized("Invalid signature.");
+            //}
 
             var token = GenerateJwtToken(user);
 

@@ -33,11 +33,10 @@ export class ChatInputComponent {
       const privateKeyString = localStorage.getItem("privateKey");
       const privateSigningKeyString = localStorage.getItem("privateSigningKey");
 
-      const publicSigningKeyString = localStorage.getItem("publicSigningKey");
       console.log("current user")
       console.log(currentUser)
-      console.log(publicSigningKeyString)
-      if (!privateKeyString || !privateSigningKeyString || !publicSigningKeyString) {
+
+      if (!privateKeyString || !privateSigningKeyString) {
         console.error('No private key or signing key found in local storage');
         return;
       }
@@ -55,8 +54,8 @@ export class ChatInputComponent {
         const secretArrayBuffer = await this.diffieHellmanService.computeSharedSecret(myPrivateKey, otherPublicKey);
         const secretKey = bufferToHex(secretArrayBuffer);
 
-        const encryptedMessage = await this.encryptionService.encryptData(this.newMessage, secretKey);
         const signature = await this.rsaService.signData(this.newMessage, privateSigningKeyString);
+        const encryptedMessage = await this.encryptionService.encryptData(this.newMessage, secretKey);
 
         if (encryptedMessage) {
           const messageToSend: Message = {
@@ -64,8 +63,7 @@ export class ChatInputComponent {
             signature: signature,
             timestamp: new Date(),
             senderId: currentUser.userId,
-            recipientId: this.recipient.userId,
-            signingPublicKey: publicSigningKeyString
+            recipientId: this.recipient.userId
           };
 
           const groupName = this.getGroupName(currentUser.userId, this.recipient.userId);

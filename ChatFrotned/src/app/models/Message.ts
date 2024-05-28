@@ -5,5 +5,4 @@ export class Message {
     timestamp: Date = new Date();
     senderId: string = '';
     recipientId: string = '';
-    signingPublicKey: string = '';
 }

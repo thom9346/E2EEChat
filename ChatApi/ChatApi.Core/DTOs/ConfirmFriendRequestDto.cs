@@ -10,5 +10,7 @@ namespace ChatApi.Core.DTOs
     {
         public Guid RequestId { get; set; }
         public string Token { get; set; }
+        public string RequesteePublicSigningKey { get; set; }
+        public Guid RequesteeId { get; set; }
     }
 }

@@ -9,6 +9,7 @@ import { DiffieHellmanService } from '../services/diffie-hellman.service';
 import { EncryptionService } from '../services/encryption.service';
 import { FriendService } from '../services/friend.service';
 import { RsaService } from '../services/rsa.service';
+import { UserService } from '../services/user.service';
 
 @Component({
   selector: 'app-chat-window',
@@ -35,7 +36,8 @@ export class ChatWindowComponent implements OnInit, AfterViewChecked {
     private diffieHellmanService: DiffieHellmanService,
     private encryptionService: EncryptionService,
     private friendService: FriendService,
-    private rsaService: RsaService
+    private rsaService: RsaService,
+    private userService: UserService
   ) {
     this.currentUser = this.authService.getCurrentUser();
   }
@@ -86,11 +88,13 @@ export class ChatWindowComponent implements OnInit, AfterViewChecked {
             const decryptedMessages = await Promise.all(data.map(async (message) => {
               if (this.shouldAttemptDecryption(message)) {
                 try {
-                  console.log("In the load message")
-                  console.log(message.signingPublicKey)
-                  console.log(message)
+                  const signingPublicKey = await this.getUserSigningPublicKey(message.senderId);
+                  if (!signingPublicKey) {
+                    console.error('Failed to get signing public key for message sender');
+                    return;
+                  }
                   const decryptedMessage = await this.encryptionService.decryptData(message.content, secretKey);
-                  const isVerified = await this.rsaService.verifySignature(decryptedMessage, message.signature, message.signingPublicKey);
+                  const isVerified = await this.rsaService.verifySignature(decryptedMessage, message.signature, signingPublicKey);
 
                   if (!isVerified) {
                     console.error('Failed to verify message signature');
@@ -117,7 +121,6 @@ export class ChatWindowComponent implements OnInit, AfterViewChecked {
 
   async decryptAndAddMessage(message: Message) {
     const myPrivateKeyString = localStorage.getItem("privateKey");
-    const senderPublicKey = message.signingPublicKey;
 
     if (!myPrivateKeyString) {
       console.error('No private key found in local storage');
@@ -141,12 +144,13 @@ export class ChatWindowComponent implements OnInit, AfterViewChecked {
 
       if (this.shouldAttemptDecryption(message)) {
         try {
-          console.log("whats in message")
-          console.log(message)
+          const signingPublicKey = await this.getUserSigningPublicKey(message.senderId);
+          if (!signingPublicKey) {
+            console.error('Failed to get signing public key for message sender');
+            return;
+          }
           const decryptedMessage = await this.encryptionService.decryptData(message.content, secretKey);
-          const isVerified = await this.rsaService.verifySignature(decryptedMessage, message.signature, senderPublicKey);
-          
-          //message.content = await this.encryptionService.decryptData(message.content, secretKey);
+          const isVerified = await this.rsaService.verifySignature(decryptedMessage, message.signature, signingPublicKey);
 
           if (!isVerified) {
             console.error('Failed to verify message signature');
@@ -188,6 +192,21 @@ export class ChatWindowComponent implements OnInit, AfterViewChecked {
     this.loadMessages();
   }
 
+  async getUserSigningPublicKey(userId: string): Promise<string | null> {
+    try {
+      const user = await this.userService.getUser(userId).toPromise();
+      if (user) {
+        return user.signingPublicKey;
+      } else {
+        console.error('User not found for the given ID');
+        return null;
+      }
+    } catch (error) {
+      console.error('Failed to fetch user signing public key:', error);
+      return null;
+    }
+  }
+
   checkFriendRequestStatus(user: User) {
     this.friendService.checkFriendRequestStatus(this.currentUser.userId, user.userId).subscribe({
       next: (response) => {
@@ -203,7 +222,16 @@ export class ChatWindowComponent implements OnInit, AfterViewChecked {
 
   sendFriendRequest() {
     if (this.selectedRecipient) {
-      this.friendService.sendFriendRequest(this.currentUser.userId, this.selectedRecipient.email).subscribe({
+
+      const currentUser = this.authService.getCurrentUser();
+      const publicSigningKey = localStorage.getItem("publicSigningKey");
+
+        if (!publicSigningKey) {
+            console.error('No public signing key found in local storage');
+            return;
+        }
+
+      this.friendService.sendFriendRequest(currentUser.userId, this.selectedRecipient.email, publicSigningKey).subscribe({
         next: (response) => {
           console.log('Friend request sent:', response);
           this.friendRequestSent = true;

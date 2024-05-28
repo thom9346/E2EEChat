@@ -2,7 +2,6 @@ import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { User } from '../models/User';
 import { UserService } from '../services/user.service';
 import { AuthService } from '../services/auth.service';
-import { FriendService } from '../services/friend.service';
 
 @Component({
   selector: 'app-user-list',
@@ -16,8 +15,7 @@ export class UserListComponent {
 
   constructor(
     private userService: UserService,
-    private authService: AuthService,
-    private friendService: FriendService) {
+    private authService: AuthService) {
     this.currentUser = this.authService.getCurrentUser();
   }
 
@@ -25,7 +23,10 @@ export class UserListComponent {
     this.userService.getUsers().subscribe({
       next: (data) => {
         const currentUser = this.authService.getCurrentUser();
+        console.log("currentUser")
+        console.log(currentUser)
         this.users = data.filter(user => user.userId !== currentUser.id);
+        console.log(this.users)
       },
       error: (error) => console.error('Failed to get users:', error)
     });
@@ -33,6 +34,7 @@ export class UserListComponent {
 
   selectUser(user: User) {
     console.log("clicked");
+    console.log(user);
     this.userSelected.emit(user);
   }
 }

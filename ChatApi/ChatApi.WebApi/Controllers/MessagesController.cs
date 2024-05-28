@@ -2,10 +2,8 @@
 using ChatApi.Core.DTOs;
 using ChatApi.Core.Entities;
 using ChatApi.Core.Interfaces;
-using ChatApi.Infrastructure.Repositories;
 using ChatApi.WebApi.SignalR;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 
@@ -82,7 +80,6 @@ namespace ChatApi.WebApi.Controllers
             var message = _mapper.Map<Message>(messageDto);
             message.MessageId = Guid.NewGuid();
             message.Signature = messageDto.Signature;
-            message.SigningPublicKey = messageDto.SigningPublicKey;
 
             _messageRepository.Add(message);
             var result = _messageRepository.Save();
@@ -124,7 +121,6 @@ namespace ChatApi.WebApi.Controllers
                 Timestamp = m.Timestamp,
                 SenderId = m.SenderId,
                 RecipientId = m.RecipientId,
-                SigningPublicKey = m.SigningPublicKey,
                 Signature = m.Signature
             });
 

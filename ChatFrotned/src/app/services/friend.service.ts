@@ -11,15 +11,15 @@ export class FriendService {
 
   constructor(private http: HttpClient) {}
 
-  sendFriendRequest(requesterId: string, requesteeEmail: string): Observable<any> {
+  sendFriendRequest(requesterId: string, requesteeEmail: string, requesterSigningPublicKey: string): Observable<any> {
     const headers = new HttpHeaders().set('Content-Type', 'application/json');
-    const body = { requesterId, requesteeEmail };
+    const body = { requesterId, requesteeEmail, requesterSigningPublicKey };
     return this.http.post<any>(`${this.apiUrl}/Friendship/send-friend-request`, body, { headers });
   }
 
-  confirmFriendRequest(requestId: string, token: string): Observable<any> {
+  confirmFriendRequest(requestId: string, token: string, requesteePublicSigningKey: string, requesteeId: string): Observable<any> {
     const headers = new HttpHeaders().set('Content-Type', 'application/json');
-    const body = { requestId, token };
+    const body = { requestId, token, requesteePublicSigningKey, requesteeId };
     return this.http.post<any>(`${this.apiUrl}/Friendship/confirm-friend-request`, body, { headers });
   }
 

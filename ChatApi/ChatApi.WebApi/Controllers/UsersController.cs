@@ -5,6 +5,8 @@ using ChatApi.Core.Interfaces;
 using ChatApi.Core.Utility;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
 
 namespace ChatApi.WebApi.Controllers
 {
@@ -23,31 +25,25 @@ namespace ChatApi.WebApi.Controllers
             _mapper = mapper ??
                 throw new ArgumentNullException(nameof(mapper));
         }
+
         [HttpGet(Name = "GetUsers")]
-        public IEnumerable<User> Get()
+        public IEnumerable<UserForReturningDto> Get()
         {
-            return _userRepository.GetAll();
+            var users = _userRepository.GetAll();
+            return _mapper.Map<IEnumerable<UserForReturningDto>>(users);
         }
 
-        [HttpPost]
-        public IActionResult Post([FromBody] UserDto userDto)
+        [HttpGet("{id}", Name = "GetUser")]
+        public IActionResult Get(Guid id)
         {
-            if (userDto == null)
+            var user = _userRepository.Get(id);
+            if (user == null)
             {
-                return BadRequest();
+                return NotFound();
             }
-            User user = _mapper.Map<User>(userDto);
 
-            user.PasswordHash = PasswordHasher.HashPassword(userDto.Password);
-
-            _userRepository.Add(user);
-            _userRepository.Save();
-
-            var userDtoResult = _mapper.Map<UserDto>(user);
-            userDtoResult.Password = null;
-
-            return CreatedAtRoute("GetUsers", new { id = userDtoResult.UserId }, userDtoResult);
-
+            var userForReturn = _mapper.Map<UserForReturningDto>(user);
+            return Ok(userForReturn);
         }
     }
 }

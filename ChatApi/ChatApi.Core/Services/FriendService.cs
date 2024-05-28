@@ -1,4 +1,5 @@
-﻿using ChatApi.Core.Entities;
+﻿using ChatApi.Core.DTOs;
+using ChatApi.Core.Entities;
 using ChatApi.Core.Interfaces;
 using ChatApi.Core.Utility;
 using System;
@@ -24,9 +25,12 @@ namespace ChatApi.Core.Services
             _emailService = emailService;
             _cryptographicManager = cryptographicManager;
         }
-        public async Task SendFriendRequest(Guid requesterId, string requesteeEmail)
+        public async Task SendFriendRequest(SendFriendRequestDto requestDto)
         {
-            var requestee = _userRepository.GetAll().FirstOrDefault(u => u.Email == requesteeEmail);
+            var requestee = _userRepository.GetAll().FirstOrDefault(u => u.Email == requestDto.RequesteeEmail);
+            var requester = _userRepository.Get(requestDto.RequesterId);
+            var requesterUserNameLowercase = requester.Username.ToLower();
+   
             if (requestee == null)
             {
                 throw new ArgumentException("User with the provided email does not exist.");
@@ -39,7 +43,7 @@ namespace ChatApi.Core.Services
             var friendship = new Friendship
             {
                 Id = Guid.NewGuid(),
-                RequesterId = requesterId,
+                RequesterId = requestDto.RequesterId,
                 RequesteeId = requestee.UserId,
                 IsConfirmed = false,
                 RequestedAt = DateTime.UtcNow,
@@ -50,20 +54,29 @@ namespace ChatApi.Core.Services
             _friendshipRepository.Add(friendship);
             _friendshipRepository.Save();
 
-            var verificationUrl = $"http://localhost:4200/verify-friend-request?requestId={friendship.Id}&token={token}";
-            await _emailService.SendEmailAsync(requestee.Email, "Friend Request Verification", $"Please verify your friend request by clicking <a href='{verificationUrl}'>here</a>.");
+            var verificationUrl = $"http://localhost:4200/verify-friend-request?requestId={friendship.Id}&token={token}&requesterSigningPublicKey={requestDto.RequesterSigningPublicKey}&requesteeId={requestee.UserId}";
+            await _emailService.SendEmailAsync(requestee.Email, "Friend Request Verification", $"You just got a friend request from: {requesterUserNameLowercase}. (Note that all usernames are shown in all lowercase letters). Please verify your friend request by clicking <a href='{verificationUrl}'>here</a>.");
         }
         private string GenerateToken()
         {
             return Convert.ToBase64String(_cryptographicManager.CryptographicRandomNumberGenerator(32));
         }
 
-        public void ConfirmFriendRequest(Guid requestId, string token)
+        public void ConfirmFriendRequest(ConfirmFriendRequestDto requestDto)
         {
-            var friendship = _friendshipRepository.Get(requestId);
+            var friendship = _friendshipRepository.Get(requestDto.RequestId);
+            var user = _userRepository.Get(requestDto.RequesteeId);
             if (friendship == null)
             {
                 throw new ArgumentException("Invalid friend request ID.");
+            }
+            if(user.SigningPublicKey != requestDto.RequesteePublicSigningKey)
+            {
+                throw new ArgumentException("Public key is incorrect.");
+            };
+            if (friendship.IsConfirmed) 
+            {
+                throw new ArgumentException("You are already friends with this user.");
             }
 
             if (DateTime.UtcNow > friendship.TokenExpiration)
@@ -84,7 +97,7 @@ namespace ChatApi.Core.Services
 
             //sanitize
             decryptedToken = decryptedToken.Trim();
-            token = token.Trim();
+            var token = requestDto.Token.Trim();
 
             if (decryptedToken != token)
             {

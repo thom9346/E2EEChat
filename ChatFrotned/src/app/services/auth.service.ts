@@ -9,7 +9,7 @@ import { RsaService } from './rsa.service';
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'https://localhost:5000/api'; // Adjust the URL as needed
+  private apiUrl = 'https://localhost:5000/api';
   private currentUserSubject = new BehaviorSubject<any>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
@@ -25,11 +25,6 @@ export class AuthService {
   }
 
   login(username: string, password: string): Observable<any> {
-    const privateKey = localStorage.getItem('privateSigningKey'); //CHANGE: Removed JSON.parse
-
-    if (!privateKey) {
-      throw new Error('No private signing key found in local storage');
-    }
     return new Observable(observer => {
 
         this.http.post<any>(`${this.apiUrl}/Auth/Login`, { username, password }).pipe(
@@ -54,7 +49,6 @@ export class AuthService {
   async register(username: string, email: string, password: string): Promise<Observable<any>> {
     const { publicKey: dhPublicKey, privateKey: dhPrivateKey } = await this.diffieHellmanService.generateECDHKeyPair();
     const { publicKey: signingPublicKey, privateKey: signingPrivateKey } = await this.rsaService.generateRSASigningKeyPair();
-    //const { publicKey: signingPublicKey, privateKey: signingPrivateKey } = await this.diffieHellmanService.generateSigningKeyPair();
 
     localStorage.setItem('privateKey', JSON.stringify(dhPrivateKey));
     localStorage.setItem('privateSigningKey', signingPrivateKey);
@@ -76,7 +70,6 @@ export class AuthService {
   logout() {
     localStorage.removeItem('token');
     localStorage.removeItem('userId');
-    localStorage.removeItem('privateSigningKey');
     this.currentUserSubject.next(null);
   }
 

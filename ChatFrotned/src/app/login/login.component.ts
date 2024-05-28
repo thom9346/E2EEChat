@@ -16,7 +16,7 @@ export class LoginComponent {
   onSubmit() {
     this.authService.login(this.username, this.password).subscribe({
       next: () => this.router.navigate(['/chat']),
-      error: (error: any) => console.error('Failed to login:', error) // Explicitly typed as `any`
+      error: (error: any) => console.error('Failed to login:', error)
     });
   }
 }

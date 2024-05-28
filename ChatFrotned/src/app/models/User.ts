@@ -3,4 +3,5 @@ export class User {
     email: string = '';
     username: string = '';
     publicKey: string = '';
+    signingPublicKey: string = '';
 }

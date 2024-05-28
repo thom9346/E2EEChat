@@ -20,19 +20,29 @@ export class VerifyFriendRequestComponent implements OnInit {
   ngOnInit(): void {
     const requestId = this.route.snapshot.queryParamMap.get('requestId');
     let token = this.route.snapshot.queryParamMap.get('token');
+    const requesteeId = this.route.snapshot.queryParamMap.get('requesteeId');
+    const publicSigningKey = localStorage.getItem("publicSigningKey");
 
-    if (requestId && token) {
+    
+    if (!publicSigningKey) {
+      console.error('No public signing key found in local storage');
+      this.verificationStatus = 'Failed to accept. No public signing key found in local storage';
+      return;
+    }
+
+
+    if (requestId && token && requesteeId) {
       //spaces from queryparams could be tranlated wrongly
       token = token.replace(/ /g, '+');
 
       const decodedToken = decodeURIComponent(token.trim());
-      this.friendService.confirmFriendRequest(requestId, decodedToken).subscribe({
+      this.friendService.confirmFriendRequest(requestId, decodedToken, publicSigningKey, requesteeId).subscribe({
         next: (response) => {
           this.verificationStatus = 'Friend request confirmed successfully.';
         },
         error: (error) => {
           console.error('Failed to confirm friend request:', error);
-          this.verificationStatus = 'Failed to confirm friend request. The link might be invalid or expired.';
+          this.verificationStatus = `Failed to confirm friend request. Reason: ${error.error.message}`;
         }
       });
     } else {

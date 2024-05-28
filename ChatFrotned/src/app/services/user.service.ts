@@ -12,11 +12,12 @@ export class UserService {
 
   constructor(private http: HttpClient) {}
 
-  getCurrentUser() {
-    // Implement this method to return the currently logged-in user
-  }
 
   getUsers(): Observable<User[]> {
-    return this.http.get<User[]>(`${this.apiUrl}/users`);
+    return this.http.get<User[]>(`${this.apiUrl}/Users`);
   }
+  getUser(id: string): Observable<User> {
+    return this.http.get<User>(`${this.apiUrl}/Users/${id}`);
+  }
+
 }

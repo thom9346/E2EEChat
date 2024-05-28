@@ -4,6 +4,7 @@ using ChatApi.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ChatApi.Infrastructure.Migrations
 {
     [DbContext(typeof(ChatApiContext))]
-    partial class ChatApiContextModelSnapshot : ModelSnapshot
+    [Migration("20240525105710_AddSigningKeysToFriendship")]
+    partial class AddSigningKeysToFriendship
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -40,8 +43,16 @@ namespace ChatApi.Infrastructure.Migrations
                     b.Property<Guid>("RequesteeId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("RequesteeSigningPublicKey")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<Guid>("RequesterId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("RequesterSigningPublicKey")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("TokenExpiration")
                         .HasColumnType("datetime2");
@@ -72,6 +83,10 @@ namespace ChatApi.Infrastructure.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Signature")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SigningPublicKey")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 

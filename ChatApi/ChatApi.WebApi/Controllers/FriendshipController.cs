@@ -23,7 +23,7 @@ namespace ChatApi.WebApi.Controllers
         {
             try
             {
-                await _friendService.SendFriendRequest(requestDto.RequesterId, requestDto.RequesteeEmail);
+                await _friendService.SendFriendRequest(requestDto);
                 return Ok(new { message = "Friend request sent." });
             }
             catch (Exception ex)
@@ -36,7 +36,7 @@ namespace ChatApi.WebApi.Controllers
         {
             try
             {
-                _friendService.ConfirmFriendRequest(requestDto.RequestId, requestDto.Token);
+                _friendService.ConfirmFriendRequest(requestDto);
                 return Ok(new { message = "Friend request confirmed." });
             }
             catch (Exception ex)

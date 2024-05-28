@@ -24,5 +24,7 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.Email, opt => opt.Ignore()); // Email will be handled separately
 
         CreateMap<Friendship, FriendshipDto>().ReverseMap();
+
+        CreateMap<User, UserForReturningDto>();
     }
 }

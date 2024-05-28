@@ -21,8 +21,9 @@ namespace ChatApi.WebApi.Controllers
         private readonly IRepository<User> _userRepository;
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
+        private readonly ICryptographicManager _cryptographicManager;
 
-        public AuthController(IRepository<User> userRepository, IMapper mapper, IConfiguration configuration)
+        public AuthController(IRepository<User> userRepository, IMapper mapper, IConfiguration configuration, ICryptographicManager cryptographicManager)
         {
             _userRepository = userRepository 
                 ?? throw new ArgumentNullException(nameof(userRepository));
@@ -32,6 +33,9 @@ namespace ChatApi.WebApi.Controllers
 
             _configuration = configuration 
                 ?? throw new ArgumentNullException(nameof(configuration));
+
+            _cryptographicManager = cryptographicManager
+                ?? throw new ArgumentNullException(nameof(cryptographicManager));
         }
         [HttpPost("register")]
         public IActionResult Register([FromBody] RegisterDto registerDto)
@@ -44,7 +48,12 @@ namespace ChatApi.WebApi.Controllers
             var user = _mapper.Map<User>(registerDto);
             user.PasswordHash = PasswordHasher.HashPassword(registerDto.Password);
             user.PublicKey = registerDto.PublicKey;
-            user.SigningPublicKey = registerDto.SigningPublicKey; // Store the signing public key
+            user.SigningPublicKey = registerDto.SigningPublicKey;
+
+            byte[] emailBytes = Encoding.UTF8.GetBytes(registerDto.Email);
+            byte[] iv;
+            byte[] encryptedEmailBytes = _cryptographicManager.Encrypt(emailBytes, out iv);
+            user.Email = Convert.ToBase64String(encryptedEmailBytes) + "." + Convert.ToBase64String(iv);
 
             _userRepository.Add(user);
             if (!_userRepository.Save())

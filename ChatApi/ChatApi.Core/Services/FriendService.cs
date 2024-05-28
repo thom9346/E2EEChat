@@ -35,6 +35,12 @@ namespace ChatApi.Core.Services
             {
                 throw new ArgumentException("User with the provided email does not exist.");
             }
+            var emailParts = requestee.Email.Split('.');
+            if (emailParts.Length != 2)
+            {
+                throw new ArgumentException("Invalid token format.");
+            }
+
             var token = GenerateToken();
 
             byte[] iv;
@@ -51,11 +57,20 @@ namespace ChatApi.Core.Services
                 TokenExpiration = DateTime.UtcNow.AddHours(24)
             };
 
+
             _friendshipRepository.Add(friendship);
             _friendshipRepository.Save();
 
+
+        
+
+            var encryptedEmail = Convert.FromBase64String(emailParts[0]);
+            var Emailiv = Convert.FromBase64String(emailParts[1]);
+
+            var decryptedEmail = Encoding.UTF8.GetString(_cryptographicManager.Decrypt(encryptedEmail, Emailiv));
+
             var verificationUrl = $"http://localhost:4200/verify-friend-request?requestId={friendship.Id}&token={token}&requesterSigningPublicKey={requestDto.RequesterSigningPublicKey}&requesteeId={requestee.UserId}";
-            await _emailService.SendEmailAsync(requestee.Email, "Friend Request Verification", $"You just got a friend request from: {requesterUserNameLowercase}. (Note that all usernames are shown in all lowercase letters). Please verify your friend request by clicking <a href='{verificationUrl}'>here</a>.");
+            await _emailService.SendEmailAsync(decryptedEmail, "Friend Request Verification", $"You just got a friend request from: {requesterUserNameLowercase}. (Note that all usernames are shown in all lowercase letters). Please verify your friend request by clicking <a href='{verificationUrl}'>here</a>.");
         }
         private string GenerateToken()
         {

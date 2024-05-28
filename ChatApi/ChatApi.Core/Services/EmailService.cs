@@ -13,10 +13,12 @@ namespace ChatApi.Core.Services
     public class EmailService : IEmailService
     {
         private readonly IConfiguration _configuration;
+        private readonly ICryptographicManager _cryptographicManager;
 
-        public EmailService(IConfiguration configuration)
+        public EmailService(IConfiguration configuration, ICryptographicManager cryptographicManager)
         {
             _configuration = configuration;
+            _cryptographicManager = cryptographicManager;
         }
 
         public async Task SendEmailAsync(string to, string subject, string body)

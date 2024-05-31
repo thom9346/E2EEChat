@@ -15,7 +15,6 @@ export class ChatService {
   private getHeaders() {
     const token = localStorage.getItem('token');
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-    console.log('Headers:', headers);
     return headers;
   }
 

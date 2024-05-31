@@ -1,11 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Mail;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using ChatApi.Core.Interfaces;
 
 namespace ChatApi.Core.Services
@@ -13,12 +8,10 @@ namespace ChatApi.Core.Services
     public class EmailService : IEmailService
     {
         private readonly IConfiguration _configuration;
-        private readonly ICryptographicManager _cryptographicManager;
 
-        public EmailService(IConfiguration configuration, ICryptographicManager cryptographicManager)
+        public EmailService(IConfiguration configuration)
         {
             _configuration = configuration;
-            _cryptographicManager = cryptographicManager;
         }
 
         public async Task SendEmailAsync(string to, string subject, string body)

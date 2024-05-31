@@ -2,11 +2,7 @@
 using ChatApi.Core.DTOs;
 using ChatApi.Core.Entities;
 using ChatApi.Core.Interfaces;
-using ChatApi.Core.Utility;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
 
 namespace ChatApi.WebApi.Controllers
 {

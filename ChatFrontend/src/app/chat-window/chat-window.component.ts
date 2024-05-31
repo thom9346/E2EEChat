@@ -83,8 +83,6 @@ export class ChatWindowComponent implements OnInit, AfterViewChecked {
       if (this.selectedRecipient) {
         this.chatService.getMessagesBetweenUsers(this.currentUser.userId, this.selectedRecipient.userId).subscribe({
           next: async (data) => {
-            console.log("the data")
-            console.log(data)
             const decryptedMessages = await Promise.all(data.map(async (message) => {
               if (this.shouldAttemptDecryption(message)) {
                 try {
@@ -233,7 +231,6 @@ export class ChatWindowComponent implements OnInit, AfterViewChecked {
 
       this.friendService.sendFriendRequest(currentUser.userId, this.selectedRecipient.email, publicSigningKey).subscribe({
         next: (response) => {
-          console.log('Friend request sent:', response);
           this.friendRequestSent = true;
         },
         error: (error) => console.error('Failed to send friend request:', error)

@@ -23,18 +23,13 @@ export class UserListComponent {
     this.userService.getUsers().subscribe({
       next: (data) => {
         const currentUser = this.authService.getCurrentUser();
-        console.log("currentUser")
-        console.log(currentUser)
         this.users = data.filter(user => user.userId !== currentUser.id);
-        console.log(this.users)
       },
       error: (error) => console.error('Failed to get users:', error)
     });
   }
 
   selectUser(user: User) {
-    console.log("clicked");
-    console.log(user);
     this.userSelected.emit(user);
   }
 }

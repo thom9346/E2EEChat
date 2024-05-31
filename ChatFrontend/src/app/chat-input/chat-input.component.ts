@@ -33,9 +33,6 @@ export class ChatInputComponent {
       const privateKeyString = localStorage.getItem("privateKey");
       const privateSigningKeyString = localStorage.getItem("privateSigningKey");
 
-      console.log("current user")
-      console.log(currentUser)
-
       if (!privateKeyString || !privateSigningKeyString) {
         console.error('No private key or signing key found in local storage');
         return;

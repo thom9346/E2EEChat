@@ -2,6 +2,7 @@
 using ChatApi.Core.DTOs;
 using ChatApi.Core.Interfaces;
 using ChatApi.Core.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,6 +10,7 @@ namespace ChatApi.WebApi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class FriendshipController : ControllerBase
     {
         private readonly IFriendService _friendService;

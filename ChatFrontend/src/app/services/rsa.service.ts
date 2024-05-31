@@ -54,9 +54,6 @@ export class RsaService {
   }
 
   async verifySignature(data: string, signatureBase64: string, publicKeyBase64: string): Promise<boolean> {
-    console.log("Verifying signature:", signatureBase64);
-    console.log("Public key:", publicKeyBase64);
-
     const signatureArrayBuffer = this.base64ToArrayBuffer(signatureBase64);
     const publicKeyArrayBuffer = this.base64ToArrayBuffer(publicKeyBase64);
 
